@@ -1,5 +1,5 @@
-from peewee import Model, SqliteDatabase, MySQLDatabase, CharField, BooleanField, ForeignKeyField, DateTimeField, TextField
-from nautiloidea import app, DateTimeJsonEncoder,
+from peewee import Model, SqliteDatabase, PostgresqlDatabase, CharField, BooleanField, ForeignKeyField, DateTimeField, TextField
+from nautiloidea import app
 import os
 import random
 import string
@@ -9,7 +9,7 @@ import json
 if app.debug:
     db = SqliteDatabase(os.path.normpath(os.path.join(os.path.split(__file__)[0], '../data.sqlite3')))
 else:
-    db = MySQLDatabase()  # TODO: Using the config the config the password and user
+    db = PostgresqlDatabase()  # TODO: Using the config the config the password and user
 
 def randomSalt(length=20):
     return "".join([random.choice(string.printable[:-5]) for i in range(length)])
@@ -38,7 +38,8 @@ class JSONField(TextField):
     def python_value(self, value):
         try:
             return json.loads(value)
-        except:
+        except Exception as e:
+            app.logger.exception(e)
             return {}
 
     def db_value(self, value):
@@ -52,6 +53,7 @@ class User(BaseModel):
     salt = CharField(max_length=64)
     email = CharField(unique=True)
     super = BooleanField(default=False)  # the admin account
+    devices = JSONField(default={})
 
     def set_pwd(self, password):
         self.salt = randomSalt(64)
@@ -69,8 +71,12 @@ class User(BaseModel):
 
 class LoginHistory(BaseModel):
 
-    uid = ForeignKeyField()
+    uid = ForeignKeyField(User)
     time = DateTimeField()
     position = TextField()
+
+def init_db():
+    db.create_dbs([User, LoginHistory], safe=True)
+
 
 

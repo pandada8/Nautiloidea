@@ -1,7 +1,8 @@
-from flask import Flask, g, session
+from flask import Flask, g, session, abort
 from json import JSONEncoder, JSONDecoder
 from datetime import datetime
 import os
+from functools import wraps
 
 app = Flask(__name__)
 
@@ -27,4 +28,21 @@ from . import views
 @app.before_request()
 def hook_users():
     if session['user']:
-        model.
+        g.user = model.User.try_get(id=int(session['user']))
+    else:
+        g.user = None
+
+def need_login(admin=False):
+    def return_wrapper(func):
+        @wraps(func)
+        def wrappers(*args, **kwargs):
+            if g.user:
+                if admin and g.user.super:
+                    return func(*args. **kwargs)
+                else:
+                    abort(403)
+                return func(*args, **kwargs)
+            else:
+                abort(403)
+        return wrappers
+    return return_wrapper

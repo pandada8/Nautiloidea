@@ -5,6 +5,7 @@ import random
 import string
 import hashlib
 import json
+from datetime import datetime, timedelta
 
 if app.debug:
     db = SqliteDatabase(os.path.normpath(os.path.join(os.path.split(__file__)[0], '../data.sqlite3')))
@@ -69,14 +70,37 @@ class User(BaseModel):
             'email': self.email
         }
 
-class LoginHistory(BaseModel):
+class Device(BaseModel):
+    deviceid = CharField(max_length=256)
+    last_status = JSONField(default={})
+    owner = ForeignKeyField(User, null=True)
 
-    uid = ForeignKeyField(User)
+    def online(self):
+        now = datetime.now().timestamp()
+        if not self.last_status:
+            return False
+        if now - self.last_status['time'] > 3 * 60:
+            return False
+        if self.last_status['event'] == 'offline':
+            return False
+        if self.last_status['event'] == 'online' or self.last_status['event'] == 'heartbeat':
+            return True
+
+class DeviceRecords(BaseModel):
+    device = ForeignKeyField(Device)
     time = DateTimeField()
-    position = TextField()
+    position = TextField(null=True)
+    action = CharField()  # online or heartbeat
+    event = CharField()  # online or heartbeat
+
+class OperationQueue(BaseModel):
+    target_device = ForeignKeyField(Device)
+    operation = JSONField(default={})
+    created = DateTimeField()
+    recv_time = DateTimeField(null=True)
 
 def init_db():
-    db.create_dbs([User, LoginHistory], safe=True)
+    db.create_tables([User, DeviceRecords, Device, OperationQueue], safe=True)
 
 
 

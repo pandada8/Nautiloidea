@@ -30,6 +30,20 @@
 				</div>
 			</form>
 		</div>
+		<div class="ui blurring basic modal">
+		  <i class="close icon"></i>
+		  <div class="header">
+		    
+		  </div>
+		  <div class="content">
+		      
+		  </div>
+		  <div class="actions">
+		      <div class="ui basic inverted button" id="ok">
+		        知道了
+		      </div>
+		  </div>
+		</div>
 	</div>
 	<script src="/static/bower_components/jquery/dist/jquery.min.js"></script>
 	<script src="/static/bower_components/semantic-ui/dist/semantic.js"></script>
@@ -64,7 +78,6 @@
 						prompt: "请输入正确的邮箱地址"
 					}]
 				}
-
 			},
 			inline: true,
 			on : "blur"
@@ -73,21 +86,38 @@
 			stateContext: ".form",
 			method: "POST",
 			serializeForm: true,
-			onReponse: function(response){
-				console.log(response)
-			},
 			successTest: function(response){
 				return !response.err
 			},
 			onSuccess: function(response){
-				console.log(response)
+				$('.modal .header').text('注册成功');
+				$('.modal .content').text('将跳转到用户页')
+				$('.modal').modal("show")
+				$('body').addClass('quiting').addClass('quiting')
+				setTimeout(function(){
+					window.location.pathname = '/user'
+				}, 2000)
 			},
 			onFailure: function(response){
-				console.log(response)
+				response = JSON.parse(response)
+				if (response.err){
+					$('.modal .header').text('注册失败');
+					$('.modal .content').text(response.msg)
+					$('.modal').modal("show")
+				}else{
+					$('.modal .header').text('Oops');
+					$('.modal .content').text('服务器遇到了一些问题，请联系管理员')
+					$('.modal').modal("show")
+				}
 			},
 			onError: function(response){
-				console.log(response)
+				$('.modal .header').text('Oops');
+				$('.modal .content').text('服务器遇到了一些问题，请联系管理员')
+				$('.modal').modal("show")
 			}
+		})
+		$('#ok').click(function(){
+			$('.modal').modal("hide")
 		})
 	})
 	</script>

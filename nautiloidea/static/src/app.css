@@ -18,8 +18,17 @@ body {
   min-height: 100%;
 }
 .page {
-  background-image: url(bg.jpg);
   min-height: 100%;
+}
+.page::after {
+  display: block;
+  content: " ";
+  position: fixed;
+  height: 100vh;
+  width: 100vw;
+  background-image: url(bg.jpg);
+  top: 0;
+  z-index: -1;
 }
 .signup .container {
   color: white;
@@ -27,4 +36,11 @@ body {
 }
 .signup .container label {
   color: white !important;
+}
+.quit {
+  opacity: 1;
+  transition: opacity 1s;
+}
+.quiting {
+  opacity: 0;
 }

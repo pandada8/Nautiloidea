@@ -12,12 +12,15 @@ if app.debug:
 else:
     db = PostgresqlDatabase()  # TODO: Using the config the config the password and user
 
+
 def randomSalt(length=20):
     return "".join([random.choice(string.printable[:-5]) for i in range(length)])
 
+
 def encrypt(password, salt):
     salt_ = hashlib.sha384(salt.encode('UTF-8')).hexdigest()
-    return hashlib.sha256(password.encode('UTF-8') + salt + salt_).hexdigest()
+    return hashlib.sha256((salt_ + password + salt).encode('UTF-8')).hexdigest()
+
 
 class BaseModel(Model):
 

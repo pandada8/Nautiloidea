@@ -37,10 +37,10 @@ def login_user():
     elif request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        user = model.User.select().where((model.User.username == username) | (model.User.email == username)).limit(1).execute()
-        if user and user.check_pwd(password):
+        user = list(model.User.select().where((model.User.username == username) | (model.User.email == username)).limit(1).execute())
+        if user and user[0].check_pwd(password):
             # login the user
-            session['user'] = user.id
+            session['user'] = user[0].id
             return jsonify(err=0, msg="登陆成功")
         else:
             return jsonify(err=1, msg="登录失败")

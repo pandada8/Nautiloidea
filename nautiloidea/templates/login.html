@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+	<meta charset="UTF-8">
+	<title>Sign Up</title>
+	<link rel="stylesheet" href="/static/bower_components/semantic-ui/dist/semantic.css">
+	<link rel="stylesheet" href="/static/src/app.css">
+</head>
+<body class="signup page">
+	<div class="ui centered grid container">
+		<div class="center aligned eight wide column row">
+			<form class="ui form">
+				<h1 class="header centered">用户登陆</h1>
+				<div class="divider"></div>
+				<div class="field">
+					<label>用户名 or 邮箱</label>
+					<input type="text" name="username" placeholder="请输入你的用户名或邮箱">
+				</div>
+				<div class="field">
+					<label>密码</label>
+					<input type="password" name="password" placeholder="请输入密码">
+				</div>
+				<div class="ui block inverted submit button">提交</div>
+				<div class="ui blurring inverted dimmer">
+				    <div class="ui medium text loader">正在提交</div>
+				</div>
+			</form>
+		</div>
+		<div class="ui blurring basic modal">
+		  <i class="close icon"></i>
+		  <div class="header">
+		    
+		  </div>
+		  <div class="content">
+		      
+		  </div>
+		  <div class="actions">
+		      <div class="ui basic inverted button" id="ok">
+		        知道了
+		      </div>
+		  </div>
+		</div>
+	</div>
+	<script src="/static/bower_components/jquery/dist/jquery.min.js"></script>
+	<script src="/static/bower_components/semantic-ui/dist/semantic.js"></script>
+	<script>
+	$(function(){
+		$('form').form({}).api({
+			url: "/signin",
+			stateContext: ".form",
+			method: "POST",
+			serializeForm: true,
+			successTest: function(response){
+				return !response.err
+			},
+			onSuccess: function(response){
+				$('.modal .header').text('登陆成功');
+				$('.modal .content').text('将跳转到用户页')
+				$('.modal').modal("show")
+				$('body').addClass('quiting').addClass('quiting')
+				setTimeout(function(){
+					window.location.pathname = '/user'
+				}, 2000)
+			},
+			onFailure: function(response){
+				response = JSON.parse(response)
+				if (response.err){
+					$('.modal .header').text('登陆失败');
+					$('.modal .content').text(response.msg)
+					$('.modal').modal("show")
+				}else{
+					$('.modal .header').text('Oops');
+					$('.modal .content').text('服务器遇到了一些问题，请联系管理员')
+					$('.modal').modal("show")
+				}
+			},
+			onError: function(response){
+				$('.modal .header').text('Oops');
+				$('.modal .content').text('服务器遇到了一些问题，请联系管理员')
+				$('.modal').modal("show")
+			}
+		})
+		$('#ok').click(function(){
+			$('.modal').modal("hide")
+		})
+	})
+	</script>
+</body>
+</html>

@@ -1,10 +1,17 @@
-from nautiloidea import app
-from flask import request, render_template, session, jsonify
+from nautiloidea import app, need_login
+from flask import request, render_template, session, jsonify, g, abort, make_response, send_from_directory
 from . import model
 from datetime import datetime
+from uuid import uuid4 as uuid
+import os
 
 
-@app.route('/register', methods=["POST", "GET"])
+@app.route('/')
+def index_page():
+    return render_template('index.html')
+
+
+@app.route('/signup', methods=["POST", "GET"])
 def register_users():
     if request.method == 'GET':
         return render_template("register.html")
@@ -22,14 +29,15 @@ def register_users():
             user.save()
             return jsonify(err=0, msg="成功注册")
 
-@app.route('/login', methods=["POST", "GET"])
+
+@app.route('/signin', methods=["POST", "GET"])
 def login_user():
     if request.method == "GET":
         return render_template("login.html")
     elif request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        user = model.User.select().where((model.User.username == username) | (model.User.email == email)).limit(1).execute()
+        user = model.User.select().where((model.User.username == username) | (model.User.email == username)).limit(1).execute()
         if user and user.check_pwd(password):
             # login the user
             session['user'] = user.id
@@ -38,16 +46,83 @@ def login_user():
             return jsonify(err=1, msg="登录失败")
 
 
-@app.route('/online'):
+@app.route('/online')
 def device_online():
     deviceid = request.args['deviceid']  #TODO: MODIFY HERE
-    device = model.Device.try_get(deviceid=deviceid)
+    device = model.Device.try_get(deviceid=deviceid)  #FIXME: Fill the position
     if device:
-        now = datetime.now()
-        model.DeviceRecords.create(action="online", device=device, )
-
-
+        with model.db.transaction():
+            now = datetime.now()
+            device_record = model.DeviceRecords.create(event="online", device=device, time=now, position="")
+            device.last_status = device_record._to_dict()
+            device.save()
+        return jsonify(err=0)
     else:
         return jsonify(err=1, msg="No Such Device, You Should bind first")
 
+@app.route('/offline')
+def device_offline():
+    deviceid = request.args['deviceid']
+    device = model.Device.try_get(deviceid=deviceid)
+    if device:
+        with model.db.transaction():
+            now = datetime.now()
+            device_record = model.DeviceRecords.create(event="offline", device=device, time=now, position="")
+            device.last_status = device_record._to_dict()
+            device.save()
+        return jsonify(err=0)
+    else:
+        return jsonify(err=1, msg="No Such Device, You Should bind first")
 
+@app.route('/heartbeat')
+def device_heartbeat():
+    deviceid = request.args['deviceid']
+    device = model.Device.try_get(deviceid=deviceid)
+    if device:
+        with model.db.transaction():
+            now = datetime.now()
+            device_record = model.DeviceRecords.create(event="heartbeat", device=device, time=now, position="")
+            device.last_status = device_record._to_dict()
+            device.save()
+        return jsonify(err=0)
+    else:
+        return jsonify(err=1, msg="No Such Device, You Should bind first")
+
+@app.route('/bind')
+@need_login()
+def device_bind():
+    deviceid = request.form['deviceid']
+    if model.Device.try_get(deviceid=deviceid):
+        return jsonify(err=1, msg="The devices is around bound, you should unbind it first")
+    device = model.Device.create(deviceid=deviceid, owner=g.user, last_status={})
+    return jsonify(err=0, msg='bind success')
+
+@app.route('/upload')
+def device_upload():
+    deviceid = request.args['deviceid']
+    now = datetime.now()
+    device = model.Device.try_get(deviceid=deviceid)
+    user = device.user
+    if not device:
+        abort(403)
+    target_file_path = request.form['path']
+    filename = uuid()
+    saved_path = "{}/{}/{}".format(now.year, now.month, filename)
+    os.makedirs(os.path.join(app.config['UPLOAD'], os.path.split(saved_path)[0]), exist_ok=True)
+    request.files[0].save(os.path.join(saved_path))
+
+
+@app.route('/f/<int:file_id>')
+@need_login()
+def get_file(file_id):
+    file = model.try_get(id=file_id)
+    if file and file.user.id == g.user.id:
+        if app.debug:
+            return send_from_directory(app.config['UPLOAD'], file.saved_path)
+        else:
+            response = make_response()
+            response.headers['Content-Type'] = ''
+            response.headers['X-Accel-Redirect'] = file.saved_path # TODO write a nginx config to fix the url
+            return response
+    else:
+        abort(404)

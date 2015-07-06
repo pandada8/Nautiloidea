@@ -90,17 +90,24 @@ class DeviceRecords(BaseModel):
     device = ForeignKeyField(Device)
     time = DateTimeField()
     position = TextField(null=True)
-    action = CharField()  # online or heartbeat
     event = CharField()  # online or heartbeat
 
 class OperationQueue(BaseModel):
     target_device = ForeignKeyField(Device)
     operation = JSONField(default={})
     created = DateTimeField()
+    send = BooleanField(default=False)
     recv_time = DateTimeField(null=True)
 
+class UploadedFile(BaseModel):
+    user = ForeignKeyField(User)
+    device = ForeignKeyField(Device)
+    origin_path = TextField()
+    saved_path = TextField()
+
+
 def init_db():
-    db.create_tables([User, DeviceRecords, Device, OperationQueue], safe=True)
+    db.create_tables([User, DeviceRecords, Device, OperationQueue, UploadedFile], safe=True)
 
 
 

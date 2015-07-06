@@ -1,0 +1,16 @@
+{
+  "name": "static",
+  "version": "0.0.0",
+  "homepage": "https://github.com/pandada8/Nautiloidea",
+  "authors": [
+    "Pandada8 <pandada8@gmail.com>"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+	<meta charset="UTF-8">
+	<title>Sign Up</title>
+	<link rel="stylesheet" href="/static/bower_components/semantic-ui/dist/semantic.css">
+	<link rel="stylesheet" href="/static/src/app.css">
+</head>
+<body class="signup page">
+	<div class="ui centered grid container">
+		<div class="center aligned eight wide column row">
+			<form class="ui form">
+				<h1 class="header centered">用户注册</h1>
+				<div class="divider"></div>
+				<div class="field">
+					<label>用户名</label>
+					<input type="text" name="username" placeholder="请输入你的用户名">
+				</div>
+				<div class="field">
+					<label>邮箱</label>
+					<input type="text" name="email" placeholder="请输入你的邮箱">
+				</div>
+				<div class="field">
+					<label>密码</label>
+					<input type="password" name="password" placeholder="请输入密码">
+				</div>
+				<div class="ui block inverted submit button">提交</div>
+				<div class="ui blurring inverted dimmer">
+				    <div class="ui medium text loader">正在提交</div>
+				</div>
+			</form>
+		</div>
+	</div>
+	<script src="/static/bower_components/jquery/dist/jquery.min.js"></script>
+	<script src="/static/bower_components/semantic-ui/dist/semantic.js"></script>
+	<script>
+	$(function(){
+		$('form').form({
+			fields:{
+				name: {
+					identifier: "username",
+					rules: [{
+						type: "empty",
+						prompt: "请输入用户名"
+					}]
+				},
+				password: {
+					identifier: "password",
+					rules: [{
+						type: "empty",
+						prompt: "请输入密码"
+					},{
+						type: 'length[6]',
+						prompt: "密码的长度应大于6位"
+					}]
+				},
+				email: {
+					identifier: "email",
+					rules: [{
+						type: "empty",
+						prompt: "请输入您的邮箱"
+					},{
+						type: "email",
+						prompt: "请输入正确的邮箱地址"
+					}]
+				}
+
+			},
+			inline: true,
+			on : "blur"
+		}).api({
+			url: "/signup",
+			stateContext: ".form",
+			method: "POST",
+			serializeForm: true,
+			onReponse: function(response){
+				console.log(response)
+			},
+			successTest: function(response){
+				return !response.err
+			},
+			onSuccess: function(response){
+				console.log(response)
+			},
+			onFailure: function(response){
+				console.log(response)
+			},
+			onError: function(response){
+				console.log(response)
+			}
+		})
+	})
+	</script>
+</body>
+</html>

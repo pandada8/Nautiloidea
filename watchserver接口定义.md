@@ -51,7 +51,7 @@ disalarm|disalarm|没有|get|无需返回|同上
 unlock|unlock|没有|get|无需返回|同上
 erase|erase|没有|get|无需返回|同上
 state|state|state|get|无需返回|state只有两种内容：safe和danger
-file_list|file_list|deviceId|post|ok|json
+file_list|file_list|deviceId, file_list|post|ok|其中的file_list是一个json对象
 file_upload|file_upload|userId, deviceId, filePath, fileName|post|ok|这个还得再商量怎么设计，如果有比较好的方案就直接用吧，我以前倒是在picker里边做过文件上传，但是当时出了挺多bug
 
 

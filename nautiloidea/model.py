@@ -71,13 +71,14 @@ class User(BaseModel):
             'username': self.username,
             'uid': self.id,
             'email': self.email,
-            "device": [i._to_dict() for i in self.device_set]
+            "devices": [i._to_dict() for i in self.device_set]
         }
 
 class Device(BaseModel):
     deviceid = CharField(max_length=256)
     last_status = JSONField(default={})
     owner = ForeignKeyField(User, null=True)
+    phone_number = CharField()
 
     def online(self):
         now = datetime.now().timestamp()

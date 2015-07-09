@@ -5,10 +5,11 @@ from datetime import datetime
 from uuid import uuid4 as uuid
 import os
 
+__folder__ = os.path.split(__file__)[0]
 
 @app.route('/')
 def index_page():
-    return render_template('index.html')
+    return send_from_directory(os.path.join(__folder__, 'static'), 'index.html')
 
 
 @app.route('/signup', methods=["POST", "GET"])
@@ -49,6 +50,9 @@ def login_user():
 @app.route('/user')
 @need_login()
 def user_index():
+    data = {
+        "user": g.user._to_dict()
+    }
     return render_template('user.html')
 
 @app.route('/online')

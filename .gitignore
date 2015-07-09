@@ -60,6 +60,6 @@ target/
 .idea/
 bower_components/
 data.sqlite3
-node_components/
 upload/
 nautiloidea/config.py
+node_modules/

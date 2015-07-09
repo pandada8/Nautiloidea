@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+	<meta charset="UTF-8">
+	<title>User | [Title]</title>
+	<link rel="stylesheet" href="/static/bower_components/semantic-ui/dist/semantic.css">
+	<link rel="stylesheet" href="/static/src/app.css">
+	<style>
+	.card{
+		margin-top: 10px !important;
+	}
+	.image .icon{
+		max-width: 100%;
+		font-size: 4em;
+		display: block;
+		margin: auto;
+	}
+	</style>
+</head>
+<body>
+	<div class="page">
+		<div class="ui stackable grid container" style="padding-top: 3rem">
+			<div class="sixteen wide column" id="menu">
+			</div>
+			<div class="four columns">
+				{% for i in g.user.devices %}
+					<div class="ui card">
+						<div class="image">
+							<i class="green check circle icon"></i>
+							<p class="ui centered header">这里是手机的名字</p>
+						</div>
+						<div class="content">
+							<p>上次通信：[date]</p>
+							<p>现在状态：【state】</p>
+						</div>
+					</div>
+				{% endfor %}
+			</div>
+		</div>
+	</div>
+	<script>
+	// var data = {{data}};
+	</script>
+	<script src="/static/index.js"></script>
+</body>
+</html>

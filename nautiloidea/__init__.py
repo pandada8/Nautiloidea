@@ -36,8 +36,9 @@ from . import model
 
 @app.before_request
 def hook_users():
-    if session.get('user'):
+    if session.get('user') is not None:
         g.user = model.User.try_get(id=int(session['user']))
+        print(g.user)
     else:
         g.user = None
 
@@ -45,14 +46,11 @@ def need_login(admin=False):
     def return_wrapper(func):
         @wraps(func)
         def wrappers(*args, **kwargs):
-            if g.user:
-                if admin and g.user.super:
-                    return func(*args, **kwargs)
-                else:
-                    abort(403)
-                return func(*args, **kwargs)
-            else:
+            if not g.user:
                 abort(403)
+            if admin and not g.user.super:
+                abort(403)
+            return func(*args, **kwargs)
         return wrappers
     return return_wrapper
 

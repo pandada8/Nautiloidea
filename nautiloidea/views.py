@@ -46,6 +46,11 @@ def login_user():
             return jsonify(err=1, msg="登录失败")
 
 
+@app.route('/user')
+@need_login()
+def user_index():
+    return render_template('user.html')
+
 @app.route('/online')
 def device_online():
     deviceid = request.args['deviceid']  #TODO: MODIFY HERE

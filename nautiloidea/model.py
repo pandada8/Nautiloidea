@@ -70,7 +70,8 @@ class User(BaseModel):
         return {
             'username': self.username,
             'uid': self.id,
-            'email': self.email
+            'email': self.email,
+            "device": [i._to_dict() for i in self.device_set]
         }
 
 class Device(BaseModel):
@@ -111,6 +112,3 @@ class UploadedFile(BaseModel):
 
 def init_db():
     db.create_tables([User, DeviceRecords, Device, OperationQueue, UploadedFile], safe=True)
-
-
-

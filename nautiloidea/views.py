@@ -50,10 +50,7 @@ def login_user():
 @app.route('/user')
 @need_login()
 def user_index():
-    data = {
-        "user": g.user._to_dict()
-    }
-    return render_template('user.html')
+    return render_template('user.html', data=g.user.user_info())
 
 @app.route('/online')
 def device_online():

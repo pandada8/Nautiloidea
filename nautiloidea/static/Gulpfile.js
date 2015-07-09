@@ -19,12 +19,12 @@ gulp.task('default', function(){
     .transform(babelify)
     .bundle()
     .pipe(source('index.js'))
-    .pipe(gulp.dest('.'));
+    .pipe(gulp.dest('dist'));
 })
 
 gulp.task('minify', function(){
-    gulp.src('index.js')
+    gulp.src('dist/index.js')
         .pipe(uglify())
         .pipe(rename('index.min.js'))
-        .pipe(gulp.dest('.'))
+        .pipe(gulp.dest('dist'))
 })

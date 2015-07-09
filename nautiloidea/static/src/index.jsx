@@ -5,11 +5,14 @@ import React from "react";
 var Menu = React.createClass({
     render() {
         return <div className="ui menu">
-            <span className="right item">
-            </span>
-            <a href="/logout" className="right red item">
-                <i className="red sign out icon"></i>退出登录
-            </a>
+            <div className="right menu">
+                <span className="item">
+                    {this.props.user.username}
+                </span>
+                <a href="/logout" className="item">
+                    <i className="red sign out icon"></i>退出登录
+                </a>
+            </div>
         </div>
     }
 })
@@ -28,7 +31,8 @@ class Card extends React.Component {
         </div>
     }
 }
+
 React.render(
-    <Menu />,
+    <Menu user={data} />,
     document.getElementById('menu')
-)
+);

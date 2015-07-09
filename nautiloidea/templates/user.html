@@ -22,25 +22,13 @@
 		<div class="ui stackable grid container" style="padding-top: 3rem">
 			<div class="sixteen wide column" id="menu">
 			</div>
-			<div class="four columns">
-				{% for i in g.user.devices %}
-					<div class="ui card">
-						<div class="image">
-							<i class="green check circle icon"></i>
-							<p class="ui centered header">这里是手机的名字</p>
-						</div>
-						<div class="content">
-							<p>上次通信：[date]</p>
-							<p>现在状态：【state】</p>
-						</div>
-					</div>
-				{% endfor %}
+			<div class="four columns" id="phones">
 			</div>
 		</div>
 	</div>
 	<script>
-	// var data = {{data}};
+	var data = {{data | tojson}};
 	</script>
-	<script src="/static/index.js"></script>
+	<script src="/static/dist/index.js"></script>
 </body>
 </html>

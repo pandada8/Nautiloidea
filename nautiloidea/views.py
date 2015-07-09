@@ -5,10 +5,11 @@ from datetime import datetime
 from uuid import uuid4 as uuid
 import os
 
+__folder__ = os.path.split(__file__)[0]
 
 @app.route('/')
 def index_page():
-    return render_template('index.html')
+    return send_from_directory(os.path.join(__folder__, 'static'), 'index.html')
 
 
 @app.route('/signup', methods=["POST", "GET"])
@@ -45,6 +46,11 @@ def login_user():
         else:
             return jsonify(err=1, msg="登录失败")
 
+
+@app.route('/user')
+@need_login()
+def user_index():
+    return render_template('user.html', data=g.user.user_info())
 
 @app.route('/online')
 def device_online():

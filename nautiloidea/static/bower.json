@@ -12,5 +12,10 @@
     "bower_components",
     "test",
     "tests"
-  ]
+  ],
+  "dependencies": {
+    "react": "~0.13.3",
+    "semantic-ui": "~2.0.2",
+    "react-router": "~0.13.3"
+  }
 }

@@ -7,6 +7,15 @@ from . import config
 import logging
 
 app = Flask(__name__)
+if os.environ.get('debug') or os.environ.get('DEBUG'):
+    logging.basicConfig(level=logging.DEBUG)
+    app.logger.info('Running in debug mode')
+    app.config.from_object(config.DevSetting)
+    app.debug = True
+    app.secret_key = "123456"
+else:
+    app.config.from_object(config.ProcutionSetting)
+    app.secret_key = os.urandom(40)
 
 class DateTimeJsonEncoder(JSONEncoder):
 
@@ -22,13 +31,6 @@ class DateTimeJsonEncoder(JSONEncoder):
         return JSONEncoder.default(self, obj)
 
 app.json_encoder = DateTimeJsonEncoder
-app.secret_key = os.urandom(40)
-if os.environ.get('debug') or os.environ.get('DEBUG'):
-    logging.basicConfig(level=logging.DEBUG)
-    app.logger.info('Running in debug mode')
-    app.config.from_object(config.DevSetting)
-else:
-    app.config.from_object(config.ProcutionSetting)
 
 from . import model
 

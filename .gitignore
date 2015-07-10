@@ -63,3 +63,4 @@ data.sqlite3
 upload/
 nautiloidea/config.py
 node_modules/
+config.jsx

@@ -3,6 +3,8 @@ import { Router, Route, Link, Redirect } from 'react-router';
 import { history } from 'react-router/lib/HashHistory';
 import moment from "moment";
 import _ from "moment/locale/zh-cn.js"
+import config from "./config"
+import BaiduMap from "./map"
 
 class Menu extends React.Component {
     render() {
@@ -90,7 +92,17 @@ class App extends React.Component {
 
 var PhonePage = React.createClass({
     render(){
-        return <h1>Test</h1>
+        return <div className="sixteen wide column">
+            <BaiduMap position={{latitude: "30.1233435", longitude: "120.343454"}}/>
+            <div className="ui segments">
+                <div className="ui segment">
+                    <p>操作</p>
+                </div>
+                <div className="ui secondary segment">
+                    <p>Secondary Content</p>
+                </div>
+            </div>
+        </div>
     }
 })
 

@@ -5,11 +5,13 @@ import _ from "moment/locale/zh-cn.js"
 
 class Menu extends React.Component {
     render() {
-        var {username} = this.props.data
+        var {username} = this.props.data,
+            devices_number = this.props.data.devices.length
         return <div className="ui menu">
+            <span className="item">{devices_number}台设备</span>
             <div className="right menu">
                 <span className="item">
-                    {username}
+                    <i className="user icon"></i>{username}
                 </span>
                 <a href="/logout" className="item">
                     <i className="red sign out icon"></i>退出登录
@@ -21,15 +23,32 @@ class Menu extends React.Component {
 
 class Phone extends React.Component {
     render() {
-        var {phone_number, last_status: { time, status }} = this.props.device;
+        var {phone_number, last_status: { time, event }} = this.props.device,
+            now = Date.now(),
+            status = '未知';
+
+        if(time && event){
+            if(event != 'offline'){
+                if(now - time > 60 * 1000){
+                    status = '离线'
+                }else{
+                    status = '在线'
+                }
+            }else{
+                status = '离线'
+            }
+        }
+        time = time === undefined ? "未知" : new Date(time).toLocaleString()
+        var icon = {'未知':'minus circle', '离线': "red remove circle", '在线': "green check circle"}[status] + ' icon status';
+
         return <div className="ui card">
             <div className="image">
-            	<i className="green check circle icon"></i>
+            	<i className={icon}></i>
+                <p className="ui centered header status-text">{status}</p>
             	<p className="ui centered header">{phone_number}</p>
             </div>
             <div className="content">
-            	<p>上次通信：{new Date(time).toLocaleString()}</p>
-            	<p>现在状态：{status}</p>
+            	<p>上次通信：{time}</p>
             </div>
         </div>
     }
@@ -46,7 +65,7 @@ class App  extends React.Component {
             <div className="sixteen wide column">
                 <Menu data={this.state.data} />
             </div>
-            <div className="four columns" id="phones">
+            <div className="ui link cards" id="phones">
                 {devices.map(function(device){
                     return <Phone device={device} />
                 })}

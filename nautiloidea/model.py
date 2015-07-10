@@ -57,7 +57,7 @@ class User(BaseModel):
     salt = CharField(max_length=64)
     email = CharField(unique=True)
     super = BooleanField(default=False)  # the admin account
-    devices = JSONField(default={})
+    devices = JSONField(default=[])
 
     def set_pwd(self, password):
         self.salt = randomSalt(64)

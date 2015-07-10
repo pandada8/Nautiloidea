@@ -1,5 +1,5 @@
 from nautiloidea import app, need_login
-from flask import request, render_template, session, jsonify, g, abort, make_response, send_from_directory
+from flask import request, render_template, session, jsonify, g, abort, make_response, send_from_directory, redirect
 from . import model
 from datetime import datetime
 from uuid import uuid4 as uuid
@@ -11,6 +11,10 @@ __folder__ = os.path.split(__file__)[0]
 def index_page():
     return send_from_directory(os.path.join(__folder__, 'static'), 'index.html')
 
+@app.route('/user')
+@need_login()
+def user_index():
+    return render_template('user.html', data=g.user.user_info())
 
 @app.route('/signup', methods=["POST", "GET"])
 def register_users():
@@ -30,11 +34,13 @@ def register_users():
             user.save()
             return jsonify(err=0, msg="成功注册")
 
-
 @app.route('/signin', methods=["POST", "GET"])
 def login_user():
     if request.method == "GET":
-        return render_template("login.html")
+        if g.user:
+            return redirect('/user')
+        else:
+            return render_template("login.html")
     elif request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
@@ -47,19 +53,17 @@ def login_user():
             return jsonify(err=1, msg="登录失败")
 
 
-@app.route('/user')
-@need_login()
-def user_index():
-    return render_template('user.html', data=g.user.user_info())
+
 
 @app.route('/online')
 def device_online():
     deviceid = request.args['deviceid']  #TODO: MODIFY HERE
     device = model.Device.try_get(deviceid=deviceid)  #FIXME: Fill the position
+    position = request.args.get('position', '')
     if device:
         with model.db.transaction():
             now = datetime.now()
-            device_record = model.DeviceRecords.create(event="online", device=device, time=now, position="")
+            device_record = model.DeviceRecords.create(event="online", device=device, time=now, position=position)
             device.last_status = device_record._to_dict()
             device.save()
         return jsonify(err=0)
@@ -70,10 +74,11 @@ def device_online():
 def device_offline():
     deviceid = request.args['deviceid']
     device = model.Device.try_get(deviceid=deviceid)
+    position = request.args.get('position', '')
     if device:
         with model.db.transaction():
             now = datetime.now()
-            device_record = model.DeviceRecords.create(event="offline", device=device, time=now, position="")
+            device_record = model.DeviceRecords.create(event="offline", device=device, time=now, position=position)
             device.last_status = device_record._to_dict()
             device.save()
         return jsonify(err=0)
@@ -84,23 +89,33 @@ def device_offline():
 def device_heartbeat():
     deviceid = request.args['deviceid']
     device = model.Device.try_get(deviceid=deviceid)
+    position = request.args.get('position', '')
     if device:
         with model.db.transaction():
             now = datetime.now()
-            device_record = model.DeviceRecords.create(event="heartbeat", device=device, time=now, position="")
+            device_record = model.DeviceRecords.create(event="heartbeat", device=device, time=now, position=position)
             device.last_status = device_record._to_dict()
             device.save()
         return jsonify(err=0)
     else:
         return jsonify(err=1, msg="No Such Device, You Should bind first")
 
-@app.route('/bind')
+@app.route('/api/message')
+def user_massage():
+    msgs = []
+    return jsonify(err=0, msg=msgs)
+
+@app.route('/bind', methods=["POST"])
 @need_login()
 def device_bind():
     deviceid = request.form['deviceid']
+    phone_number = request.form.get("phone_number")
     if model.Device.try_get(deviceid=deviceid):
         return jsonify(err=1, msg="The devices is around bound, you should unbind it first")
-    device = model.Device.create(deviceid=deviceid, owner=g.user, last_status={})
+    with model.db.transaction():
+        device = model.Device.create(deviceid=deviceid, owner=g.user, last_status={}, phone_number=phone_number)
+        g.user.devices.append(dict(deviceid=deviceid, phone_number=phone_number, id=device.id))
+        g.user.save()
     return jsonify(err=0, msg='bind success')
 
 @app.route('/upload')

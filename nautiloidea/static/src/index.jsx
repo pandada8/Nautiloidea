@@ -1,8 +1,6 @@
 import React from "react";
 import { Router, Route, Link, Redirect } from 'react-router';
 import { history } from 'react-router/lib/HashHistory';
-import moment from "moment";
-import _ from "moment/locale/zh-cn.js"
 import config from "./config"
 import BaiduMap from "./map"
 

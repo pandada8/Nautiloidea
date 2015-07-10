@@ -12,7 +12,7 @@ gulp.task('watch', function(){
 })
 
 gulp.task('default', function(){
-    browserify({
+    return browserify({
         entries: 'src/index.jsx',
         extensions: ['.jsx']
     })
@@ -23,7 +23,7 @@ gulp.task('default', function(){
 })
 
 gulp.task('minify', function(){
-    gulp.src('dist/index.js')
+    return gulp.src('dist/index.js')
         .pipe(uglify())
         .pipe(rename('index.min.js'))
         .pipe(gulp.dest('dist'))

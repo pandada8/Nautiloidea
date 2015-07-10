@@ -11,7 +11,7 @@ class Menu extends React.Component {
         var {username} = this.props.data,
             devices_number = this.props.data.devices.length
         return <div className="ui menu">
-            <span className="item">{devices_number}台设备</span>
+            <Link to="/" className="item">{devices_number}台设备</Link>
             <div className="right menu">
                 <span className="item">
                     <i className="user icon"></i>{username}
@@ -99,7 +99,7 @@ var PhonePage = React.createClass({
                     <p>操作</p>
                 </div>
                 <div className="ui secondary segment">
-                    <p>Secondary Content</p>
+
                 </div>
             </div>
         </div>

@@ -1,8 +1,6 @@
 import {ak} from "./config";
 import React from "react";
 
-console.log(ak)
-
 class BaiduMap extends React.Component {
     constructor(props){
         super(props)
@@ -33,12 +31,14 @@ class BaiduMap extends React.Component {
         map.enableKeyboard()
         if (this.props.position){
             var center = new BMap.Point(this.props.position.longitude, this.props.position.latitude);
+            var marker = new BMap.Marker(center);
             map.centerAndZoom(center, 15);
+            map.addOverlay(marker);
         }
     }
     render(){
         var style = {
-            "height": '200px',
+            "height": '300px',
             "width": "100%"
         }
         var target_style = {height: "100%"};

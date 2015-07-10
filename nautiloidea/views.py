@@ -52,7 +52,45 @@ def login_user():
         else:
             return jsonify(err=1, msg="登录失败")
 
+@app.route("/operation", methods=['GET', 'POST'])
+def save_operation():
+    if request.method == 'GET':
+        return jsonify(err=1, msg="Not Implemented")
+    elif requests.method == 'POST':
+        operation = request.form.get('operation')
+        device_id = request.form['device']
+        to_send = {}
 
+        if operation == 'alarm':
+            to_send['operation'] = 'alarm'
+        elif operation == 'erase':
+            password = request.form.get('password')
+            if g.users.check_pwd(password):
+                to_send['operation'] = 'erase'
+            else:
+                abort(403)
+        elif operation == 'lock':
+            to_send['operation'] = 'lock'
+        elif operation == 'get_file':
+            to_send['operation'] = 'get_life'
+            to_send['path'] = 'get_life'
+        elif operation == "get_list":
+            to_send['operation'] = 'get_list'
+            if 'path' in request.form:
+                to_send['path'] = request.form['path']
+        with model.db.transcation():
+            device = model.Device.try_get(id=device_id)
+            now = datetime.now()
+            if device and device.owner == g.user:
+                model.OperationQueue.create(
+                    target_device=device,
+                    operation=to_send,
+                    created=now,
+                    operation_type=to_send['operation'],
+                )
+            else:
+                abort(400)
+        return jsonify(err=0, msg="操作成功")
 
 
 @app.route('/online')

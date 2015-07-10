@@ -1,8 +1,11 @@
 import React from "react";
 import { Router, Route, Link, Redirect } from 'react-router';
 import { history } from 'react-router/lib/HashHistory';
-import config from "./config"
-import BaiduMap from "./map"
+import moment from "moment";
+import config from "./config";
+import BaiduMap from "./map";
+import request from "superagent";
+
 
 class Menu extends React.Component {
     render() {
@@ -89,7 +92,14 @@ class App extends React.Component {
 }
 
 var PhonePage = React.createClass({
+    clean(){
+
+    }
+    alarm(){
+
+    }
     render(){
+        // TODO: Using data
         return <div className="sixteen wide column">
             <BaiduMap position={{latitude: "30.1233435", longitude: "120.343454"}}/>
             <div className="ui segments">
@@ -97,7 +107,10 @@ var PhonePage = React.createClass({
                     <p>操作</p>
                 </div>
                 <div className="ui secondary segment">
-
+                    <div className="ui red button" onClick={this.clean}>擦除手机</div>
+                    <div className="ui yellow button" onClick={this.alarm}>响铃</div>
+                    <div className="ui yellow button">锁定手机</div>
+                    <div className="ui yellow button">获取文件</div>
                 </div>
             </div>
         </div>

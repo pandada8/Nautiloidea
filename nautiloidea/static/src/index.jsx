@@ -44,8 +44,8 @@ class Phone extends React.Component {
         time = time === undefined ? "未知" : new Date(time).toLocaleString()
         var icon = {'未知':'minus circle', '离线': "red remove circle", '在线': "green check circle"}[status] + ' icon status';
         var phone_url = "phone/" + this.props.device.id;
-
-        return <Link className="ui card" to={phone_url}>
+        var ui_fix = {marginTop: '30px !important'};
+        return <Link className="ui card" to={phone_url} style={ui_fix}>
             <div className="image">
             	<i className={icon}></i>
                 <p className="ui centered header status-text">{status}</p>

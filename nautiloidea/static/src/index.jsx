@@ -1,7 +1,6 @@
 import React from "react";
 import { Router, Route, Link, Redirect } from 'react-router';
 import { history } from 'react-router/lib/HashHistory';
-import config from "./config"
 import BaiduMap from "./map"
 
 class Menu extends React.Component {
@@ -10,6 +9,7 @@ class Menu extends React.Component {
             devices_number = this.props.data.devices.length
         return <div className="ui menu">
             <Link to="/" className="item">{devices_number}台设备</Link>
+            <Link to="/bind_guide" className="item">绑定设备</Link>
             <div className="right menu">
                 <span className="item">
                     <i className="user icon"></i>{username}
@@ -104,11 +104,23 @@ var PhonePage = React.createClass({
     }
 })
 
+class BindGuidePage extends React.Component{
+    render(){
+        return <div className="sixteen wide column">
+            <div className="ui segment">
+                <h2 className="header">怎样绑定我的手机？</h2>
+                <p>点击<a href="#" target="_blank">链接</a>下载应用，安装登陆后根据说明操作。</p>
+            </div>
+        </div>
+    }
+}
+
 React.render(
     <Router history={history}>
         <Route component={App}>
             <Route path="/" component={IndexPage} />
             <Route path="phone/:phone_id" component={PhonePage} />
+            <Route path="bind_guide" component={BindGuidePage} />
         </Route>
      </Router>, document.getElementById('app')
 )

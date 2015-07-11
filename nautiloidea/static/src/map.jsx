@@ -1,4 +1,4 @@
-import {ak} from "./config";
+import {ak} from "./config.jsx";
 import React from "react";
 
 class BaiduMap extends React.Component {

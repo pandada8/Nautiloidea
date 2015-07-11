@@ -32,6 +32,7 @@ def register_users():
             user.email = email
             user.set_pwd(password)
             user.save()
+            session['user'] = user.id
             return jsonify(err=0, msg="成功注册")
 
 @app.route('/signin', methods=["POST", "GET"])
@@ -52,7 +53,10 @@ def login_user():
         else:
             return jsonify(err=1, msg="登录失败")
 
-
+@app.route('/logout')
+def logout_user():
+    session.clear()
+    return redirect('/')
 
 
 @app.route('/online')

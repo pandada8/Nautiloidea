@@ -8,23 +8,29 @@
 </head>
 <body class="signup page">
 	<div class="ui centered grid container">
-		<div class="center aligned eight wide column row">
-			<form class="ui form">
-				<h1 class="header centered">用户登陆</h1>
-				<div class="divider"></div>
-				<div class="field">
-					<label>用户名 or 邮箱</label>
-					<input type="text" name="username" placeholder="请输入你的用户名或邮箱">
-				</div>
-				<div class="field">
-					<label>密码</label>
-					<input type="password" name="password" placeholder="请输入密码">
-				</div>
-				<div class="ui block inverted submit button">提交</div>
-				<div class="ui blurring inverted dimmer">
-				    <div class="ui medium text loader">正在提交</div>
-				</div>
-			</form>
+		<div class="doubling nine wide column">
+			<div class="ui segment">
+				<form class="ui form">
+					<h1 class="header centered">用户登陆</h1>
+					<div class="divider"></div>
+					<div class="field">
+						<label>用户名 or 邮箱</label>
+						<input type="text" name="username" placeholder="请输入你的用户名或邮箱">
+					</div>
+					<div class="field">
+						<label>密码</label>
+						<input type="password" name="password" placeholder="请输入密码">
+					</div>
+					<div class="ui block inverted green submit button">提交</div>
+					<div class="ui blurring inverted dimmer">
+					    <div class="ui medium text loader">正在提交</div>
+					</div>
+					<div class="ui hidden message">
+						<div class="header">Oops</div>
+						<div class="content"></div>
+					</div>
+				</form>
+			</div>
 		</div>
 		<div class="ui blurring basic modal">
 		  <i class="close icon"></i>
@@ -45,7 +51,10 @@
 	<script src="/static/bower_components/semantic-ui/dist/semantic.js"></script>
 	<script>
 	$(function(){
-		$('form').form({}).api({
+		$('form').form({
+			inline: true,
+			on: 'blur'
+		}).api({
 			url: "/signin",
 			stateContext: ".form",
 			method: "POST",
@@ -65,9 +74,9 @@
 			onFailure: function(response){
 				response = JSON.parse(response)
 				if (response.err){
-					$('.modal .header').text('登陆失败');
-					$('.modal .content').text(response.msg)
-					$('.modal').modal("show")
+					$('.ui.message .content').text(response.msg);
+					$('.ui.message').removeClass('hidden').addClass('error')
+					$('.form').form('set error')
 				}else{
 					$('.modal .header').text('Oops');
 					$('.modal .content').text('服务器遇到了一些问题，请联系管理员')

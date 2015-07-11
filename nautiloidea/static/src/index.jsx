@@ -43,7 +43,7 @@ class Phone extends React.Component {
         }
         time = time === undefined ? "未知" : new Date(time).toLocaleString()
         var icon = {'未知':'minus circle', '离线': "red remove circle", '在线': "green check circle"}[status] + ' icon status';
-        var phone_url = "phone/" + this.props.device.id;
+        var phone_url = "phone/" + this.props.device.deviceid;
         var ui_fix = {marginTop: '30px !important'};
         return <Link className="ui card" to={phone_url} style={ui_fix}>
             <div className="image">
@@ -93,7 +93,25 @@ class App extends React.Component {
 class PhonePage extends React.Component{
     constructor(props){
         super(props)
-        this.state = {messages: []}
+        this.state = {messages: [], last_status: {}}
+        this.deviceid = this.props.params.phone_id
+    }
+    componentWillMount(){
+        this.timer = setInterval(()=>{
+            request.get('/status')
+                .query({device: this.deviceid})
+                .end((err, resp)=>{
+                    if(err){
+                        console.error(err)
+                    }else{
+                        if(resp.err){
+                            console.log(err)
+                        }else{
+                            this.setState({last_status: resp.status})
+                        }
+                    }
+                })
+        }, 2000)
     }
     erase(){
         var eraseNode = React.findDOMNode(this.refs.erase)
@@ -122,7 +140,7 @@ class PhonePage extends React.Component{
         request.post('/operation')
             .type('form')
             .send(data)
-            .send({deviceid: this.props.params.phone_id})
+            .send({deviceid: this.deviceid})
             .end(cb)
     }
     alert(msg){
@@ -137,10 +155,14 @@ class PhonePage extends React.Component{
     getFile(){
 
     }
+    componentWillUnmount(){
+        // delete the timer
+        clearInterval(this.timer)
+    }
     render(){
         // TODO: Using data
         return <div className="sixteen wide column">
-            <BaiduMap position={{latitude: "30.1233435", longitude: "120.343454"}}/>
+            <BaiduMap position={this.state.last_status.position}/>
             <div className="ui segments">
                 <div className="ui segment">
                     <p>操作</p>

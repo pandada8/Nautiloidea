@@ -52,9 +52,6 @@ def send_task(data):
         logging.warn('Error: %s', content['err_msg'])
     return
 
-
-
-
 @asyncio.coroutine
 def run():
     while True:

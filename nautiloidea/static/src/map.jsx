@@ -4,16 +4,23 @@ import React from "react";
 class BaiduMap extends React.Component {
     constructor(props){
         super(props)
-        if(window.BMAP){
-            this.state = {loaded: true}
-        }else{
-            this.state = {loaded: false}
+        this.state = {position: this.props.position}
+    }
+    componentDidMount(){
+        if(!window.BMAP){
             this.loadScript(() => {
-                this.setState({loaded: true})
+                this.forceUpdate()
                 setTimeout(() => {
-                    this.init_maps()
+                    if (this.state.position){
+                        this.init_maps()
+                    }
                 }, 10)
             })
+        }else{
+            if (this.state.position){
+                this.forceUpdate()
+                this.init_maps()
+            }
         }
     }
     loadScript(cb){
@@ -35,12 +42,16 @@ class BaiduMap extends React.Component {
             map.addOverlay(marker);
         }
     }
+    update_position(longitude, latitude){
+
+    }
     render(){
         var style = {
             "height": '300px',
             "width": "100%"
         }
         var target_style = {height: "100%"};
+        console.log(this.props.position)
         if(this.state.loaded){
             return <div className="ui segment" style={style}>
                 <div className="" style={target_style} ref="target"></div>
@@ -53,8 +64,8 @@ class BaiduMap extends React.Component {
             </div>
         }else{
             return <div className="ui segment" style={style}>
-                <div className="ui active inverted dimmer">
-                    <div>没有位置信息</div>
+                <div className="ui inverted active dimmer">
+                    <div className="ui text loader">没有位置信息</div>
                 </div>
             </div>
         }

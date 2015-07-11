@@ -108,7 +108,7 @@ def save_operation():
             print(operation)
             abort(400)
         with model.db.transaction():
-            device = model.Device.try_get(id=device_id)
+            device = model.Device.try_get(deviceid=device_id)
             now = datetime.now()
             print(device, device.owner.id, g.user.id)
             if device and device.owner.id == g.user.id:
@@ -171,6 +171,17 @@ def device_heartbeat():
 def user_massage():
     msgs = []
     return jsonify(err=0, msg=msgs)
+
+@app.route("/status")
+@need_login()
+def return_status():
+    device_id = request.args['device']
+    if device_id:
+        device = model.Device.try_get(deviceid=device_id)
+        if device and device.owner.id == g.user.id:
+            return jsonify(err=0, status=device.last_status)
+    return jsonify(err=1, msg="Oops")
+
 
 @app.route('/bind', methods=["POST"])
 @need_login()

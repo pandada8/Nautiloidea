@@ -29,12 +29,11 @@ def fetchUnFinished():
         return None
 
 def md5(s):
-    return hashlib.md5sum(s.encode("UTF8")).hexdigest()
+    return hashlib.md5(s.encode("UTF8")).hexdigest()
 
 @asyncio.coroutine
 def send_task(data):
-    target_device = data.deviceid
-    params = {
+    send_data = {
         "device_token": data.target_device.deviceid,
         "message_type": 2,
         "message": json.dumps({'content':data.operation ,'title': 'none', "custom_content": {'task_id': data.id}}, ensure_ascii=False),
@@ -42,15 +41,15 @@ def send_task(data):
         "access_id": appid,
         "expire_time": 86400,
     }
-    sign = "POSTopenapi.xg.qq.com/v2/push/single_device{}{}".format(''.join([str(i)+"="+str(j) for i,j in sorted(params.items(), key=lambda x:x[0])]), token)
-    print(sign, md5(sign))
-    params['sign'] = md5(sign)
-    response = yield from aiohttp.get('http://openapi.xg.qq.com/v2/push/single_device', params=params)
+    sign = "POSTopenapi.xg.qq.com/v2/push/single_device{}{}".format(''.join([str(i)+"="+str(j) for i,j in sorted(send_data.items(), key=lambda x:x[0])]), token)
+    send_data['sign'] = md5(sign)
+    logging.debug('Sign %s got %s', sign, send_data['sign'])
+    response = yield from aiohttp.request('POST', 'http://openapi.xg.qq.com/v2/push/single_device', data=send_data)
     content = json.loads((yield from response.read()).decode())
-    print(content)
+    logging.debug("Returned %s",content)
     if content['ret_code']:
         data.msg['err'] = content['err_msg']
-        logging.warn('Error', content['err_msg'])
+        logging.warn('Error: %s', content['err_msg'])
     return
 
 
@@ -61,16 +60,20 @@ def run():
     while True:
         data = fetchUnFinished()
         if data:
+            logging.debug('Got a %s',data.operation_type)
             result = yield from send_task(data)
             data.sent = True
             data.save()
         else:
+            logging.debug('No Jobs sleeping...')
             yield from asyncio.sleep(1)
+
 def run_thread():
     event_loop = asyncio.get_event_loop()
     event_loop.run_until_complete(run())
 
 def run_in_thread():
-    thread = threading.Thead(target=run_thread)
-    thread.start()
-    return thread
+    # thread = threading.Thread(target=run_thread)
+    # thread.start()
+    # return thread
+    run_thread()

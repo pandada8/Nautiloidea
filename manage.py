@@ -31,13 +31,13 @@ def admin_create():
         if username and not model.User.try_get(username=username):
             break
         else:
-            print('Wrong input, retry')
+            print('Existed, retry')
     while True:
         email = input('Email: ')
         if email and not model.User.try_get(email=email):
             break
         else:
-            print('Wrong input, retry')
+            print('Existed, retry')
 
     password = getpass.getpass()
     user = model.User()

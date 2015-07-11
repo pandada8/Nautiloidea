@@ -1,7 +1,8 @@
 import React from "react";
 import { Router, Route, Link, Redirect } from 'react-router';
 import { history } from 'react-router/lib/HashHistory';
-import BaiduMap from "./map"
+import BaiduMap from "./map";
+import request from "superagent";
 
 
 class Menu extends React.Component {
@@ -89,13 +90,53 @@ class App extends React.Component {
     }
 }
 
-var PhonePage = React.createClass({
-    clean(){
-
-    },
+class PhonePage extends React.Component{
+    constructor(props){
+        super(props)
+        this.state = {messages: []}
+    }
+    erase(){
+        var eraseNode = React.findDOMNode(this.refs.erase)
+        eraseNode.className += ' loading'
+        var data = {operaition: "erase"}
+        this.sendRequests(data, ()=>{
+            eraseNode.className = eraseNode.className.replace("loading", '')
+            this.alert("擦除手机请求发送成功")
+        })
+    }
     alarm(){
+        var alarm = React.findDOMNode(this.refs.alarm)
+        alarm.className += ' loading'
+        var data = {operation: "alarm"}
+        this.sendRequests(data, (err, response)=>{
+            alarm.className = alarm.className.replace("loading", '')
+            if(!err && !response.err){
+                this.alert("响铃请求发送成功")
+            }else{
+                this.alert('Oops, 服务器出了一些问题')
+            }
 
-    },
+        })
+    }
+    sendRequests(data, cb){
+        request.post('/operation')
+            .type('form')
+            .send(data)
+            .send({deviceid: this.props.params.phone_id})
+            .end(cb)
+    }
+    alert(msg){
+        this.setState({messages: [msg].concat(this.state.messages)})
+        setTimeout(()=>{
+            this.setState({messages: this.state.messages.slice(0, -1) })
+        }, 3000)
+    }
+    lock(){
+
+    }
+    getFile(){
+
+    }
     render(){
         // TODO: Using data
         return <div className="sixteen wide column">
@@ -105,15 +146,20 @@ var PhonePage = React.createClass({
                     <p>操作</p>
                 </div>
                 <div className="ui secondary segment">
-                    <div className="ui red button" onClick={this.clean}>擦除手机</div>
-                    <div className="ui yellow button" onClick={this.alarm}>响铃</div>
-                    <div className="ui yellow button">锁定手机</div>
-                    <div className="ui yellow button">获取文件</div>
+                    <div className="ui red button" onClick={this.erase.bind(this)} ref="erase">擦除手机</div>
+                    <div className="ui yellow button" onClick={this.alarm.bind(this)} ref="alarm">响铃</div>
+                    <div className="ui yellow button" onClick={this.lock.bind(this)} ref="lock">锁定手机</div>
+                    <div className="ui yellow button" onClick={this.getFile.bind(this)} ref="getFile    ">获取文件</div>
                 </div>
+            </div>
+            <div className="ui messages">
+                {this.state.messages.map((x) => {
+                    return <div className="ui message"><i className="notched circle loading icon"></i>{x}</div>
+                })}
             </div>
         </div>
     }
-})
+}
 
 class BindGuidePage extends React.Component{
     render(){

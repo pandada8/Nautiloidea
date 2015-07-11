@@ -82,9 +82,9 @@ def logout_user():
 def save_operation():
     if request.method == 'GET':
         return jsonify(err=1, msg="Not Implemented")
-    elif requests.method == 'POST':
+    elif request.method == 'POST':
         operation = request.form.get('operation')
-        device_id = request.form['device']
+        device_id = request.form['deviceid']
         to_send = {}
 
         if operation == 'alarm':
@@ -104,10 +104,14 @@ def save_operation():
             to_send['operation'] = 'get_list'
             if 'path' in request.form:
                 to_send['path'] = request.form['path']
-        with model.db.transcation():
+        else:
+            print(operation)
+            abort(400)
+        with model.db.transaction():
             device = model.Device.try_get(id=device_id)
             now = datetime.now()
-            if device and device.owner == g.user:
+            print(device, device.owner.id, g.user.id)
+            if device and device.owner.id == g.user.id:
                 model.OperationQueue.create(
                     target_device=device,
                     operation=to_send,

@@ -78,7 +78,7 @@ class Device(BaseModel):
     deviceid = CharField(max_length=256, unique=True)
     last_status = JSONField(default={})
     owner = ForeignKeyField(User, null=True)
-    phone_number = CharField()
+    phone_number = CharField(unique=True)
 
     def online(self):
         now = datetime.now().timestamp()

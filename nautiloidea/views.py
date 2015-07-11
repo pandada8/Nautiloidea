@@ -187,7 +187,7 @@ def return_status():
 @need_login()
 def device_bind():
     deviceid = request.form['deviceid']
-    phone_number = request.form.get("phone_number")
+    phone_number = request.form.get("deviceName", '')
     if model.Device.try_get(deviceid=deviceid):
         return jsonify(err=1, msg="The devices is around bound, you should unbind it first")
     with model.db.transaction():

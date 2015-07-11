@@ -100,9 +100,11 @@ class DeviceRecords(BaseModel):
 class OperationQueue(BaseModel):
     target_device = ForeignKeyField(Device)
     operation = JSONField(default={})
+    operation_type = CharField()
     created = DateTimeField()
-    send = BooleanField(default=False)
-    recv_time = DateTimeField(null=True)
+    sent = BooleanField(default=False)
+    responsed = DateTimeField(null=True)
+    msg = JSONField(default={})
 
 class UploadedFile(BaseModel):
     user = ForeignKeyField(User)

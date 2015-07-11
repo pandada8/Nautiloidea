@@ -27,7 +27,6 @@ class BaiduMap extends React.Component {
         var dom = React.findDOMNode(this.refs.target)
         var map = this.state.map = new BMap.Map(dom)
         map.enableScrollWheelZoom()
-        map.disableDragging()
         map.enableKeyboard()
         if (this.props.position){
             var center = new BMap.Point(this.props.position.longitude, this.props.position.latitude);

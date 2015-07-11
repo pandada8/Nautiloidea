@@ -38,7 +38,7 @@ from . import model
 def hook_users():
     if session.get('user') is not None:
         g.user = model.User.try_get(id=int(session['user']))
-        print(g.user)
+        # print(g.user)
     else:
         g.user = None
 

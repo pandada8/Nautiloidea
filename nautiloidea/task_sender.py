@@ -9,6 +9,8 @@ import threading
 import logging
 from . import app
 
+token = app.config['TENCENT_TOKEN']
+
 if app.debug:
     logging.basicConfig(level=logging.DEBUG)
 else:

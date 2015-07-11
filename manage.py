@@ -47,7 +47,7 @@ def admin_create():
     user.save()
     print("Create user successfully.")
 
-@manager.command()
+@manager.command
 def run_sender():
     from nautiloidea.task_sender import run_in_thread
     run_in_thread()

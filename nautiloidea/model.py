@@ -75,7 +75,7 @@ class User(BaseModel):
         }
 
 class Device(BaseModel):
-    deviceid = CharField(max_length=256)
+    deviceid = CharField(max_length=256, unique=True)
     last_status = JSONField(default={})
     owner = ForeignKeyField(User, null=True)
     phone_number = CharField()

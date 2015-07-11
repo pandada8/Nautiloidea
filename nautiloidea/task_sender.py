@@ -5,10 +5,14 @@ import aiohttp
 import asyncio
 from . import model
 from datetime import datetime
+import time
 import threading
 import logging
+import json
+import hashlib
 from . import app
 
+appid = app.config['TENCENT_APPID']
 token = app.config['TENCENT_TOKEN']
 
 if app.debug:
@@ -24,17 +28,41 @@ def fetchUnFinished():
     else:
         return None
 
+def md5(s):
+    return hashlib.md5sum(s.encode("UTF8")).hexdigest()
+
+@asyncio.coroutine
 def send_task(data):
-    pass
+    target_device = data.deviceid
+    params = {
+        "device_token": data.target_device.deviceid,
+        "message_type": 2,
+        "message": json.dumps({'content':data.operation ,'title': 'none', "custom_content": {'task_id': data.id}}, ensure_ascii=False),
+        "timestamp": int(time.time()),
+        "access_id": appid,
+        "expire_time": 86400,
+    }
+    sign = "POSTopenapi.xg.qq.com/v2/push/single_device{}{}".format(''.join([str(i)+"="+str(j) for i,j in sorted(params.items(), key=lambda x:x[0])]), token)
+    print(sign, md5(sign))
+    params['sign'] = md5(sign)
+    response = yield from aiohttp.get('http://openapi.xg.qq.com/v2/push/single_device', params=params)
+    content = json.loads((yield from response.read()).decode())
+    print(content)
+    if content['ret_code']:
+        data.msg['err'] = content['err_msg']
+        logging.warn('Error', content['err_msg'])
+    return
+
+
+
 
 @asyncio.coroutine
 def run():
     while True:
         data = fetchUnFinished()
         if data:
-            result = yield from send_task(data._to_dict())
+            result = yield from send_task(data)
             data.sent = True
-            data.msg = result
             data.save()
         else:
             yield from asyncio.sleep(1)

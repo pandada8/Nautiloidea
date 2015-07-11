@@ -7,6 +7,25 @@ import os
 
 __folder__ = os.path.split(__file__)[0]
 
+def update_position():
+    @wraps(func)
+    def wrappers(*args, **kwargs):
+        if request.args.get('deviceid'):
+            g.t = datetime.now().timestamp()
+            device = model.Device.try_get(deviceid=deviceid)
+            position = request.args.get('gps') or request.form.get('gps')
+            if device:
+                if position:
+                    latitude, longtitude = position.split("|")
+                    device.last_status['position'] = {"latitude": int(latitude), "longtitude": int(longtitude), "t": g.t}
+                return func(*args, **kwargs)
+            else:
+                abort(403)
+        else:
+            abort(400)
+    return wrappers
+
+
 @app.route('/')
 def index_page():
     return send_from_directory(os.path.join(__folder__, 'static'), 'index.html')
@@ -49,7 +68,7 @@ def login_user():
         if user and user[0].check_pwd(password):
             # login the user
             session['user'] = user[0].id
-            return jsonify(err=0, msg="登陆成功")
+            return jsonify(err=0, msg="登陆成功", user=user[0].user_info())
         else:
             return jsonify(err=1, msg="登录失败")
 
@@ -103,7 +122,7 @@ def save_operation():
 def device_online():
     deviceid = request.args['deviceid']  #TODO: MODIFY HERE
     device = model.Device.try_get(deviceid=deviceid)  #FIXME: Fill the position
-    position = request.args.get('position', '')
+    position = request.args.get('gps', '')
     if device:
         with model.db.transaction():
             now = datetime.now()
@@ -118,7 +137,7 @@ def device_online():
 def device_offline():
     deviceid = request.args['deviceid']
     device = model.Device.try_get(deviceid=deviceid)
-    position = request.args.get('position', '')
+    position = request.args.get('gps', '')
     if device:
         with model.db.transaction():
             now = datetime.now()
@@ -133,7 +152,7 @@ def device_offline():
 def device_heartbeat():
     deviceid = request.args['deviceid']
     device = model.Device.try_get(deviceid=deviceid)
-    position = request.args.get('position', '')
+    position = request.args.get('gps', '')
     if device:
         with model.db.transaction():
             now = datetime.now()

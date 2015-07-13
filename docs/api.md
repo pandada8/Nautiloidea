@@ -47,7 +47,7 @@ Data:
      'msg': '登陆成功',
      'user': {'devices': [],
               'email': 'test@test.com',
-              'uid': 8,
+              'uid': 1,
               'username': 'Test'}}
 
 
@@ -82,7 +82,7 @@ Data:
 
 调用示例:
 
-    GET http://127.0.0.1:5000/heartbeat?latitude=1.233&deviceid=device1&longitude=1.234
+    GET http://127.0.0.1:5000/heartbeat?latitude=1.233&longitude=1.234&deviceid=device1
 
 Params:
 
@@ -119,22 +119,13 @@ Data:
 
     {'err': 0,
      'msg': '登陆成功',
-     'user': {'devices': [{'deviceid': 'device1',
-                           'id': 9,
-                           'last_status': {'position': {'latitude': 1.233,
-                                                        'longtitude': 1.234,
-                                                        't': 1436797265.975038},
-                                           'record': {'device': 9,
-                                                      'event': 'heartbeat',
-                                                      'id': 8,
-                                                      'position': {'latitude': 1.233,
-                                                                   'longtitude': 1.234,
-                                                                   't': 1436797265.975038},
-                                                      'time': 1436797265.979786}},
-                           'owner': 8,
-                           'phone_number': 'China Mobile'}],
+     'user': {'devices': [{'deviceName': 'China Mobile',
+                           'deviceid': 'device1',
+                           'id': 1,
+                           'last_status': {},
+                           'owner': 1}],
               'email': 'test@test.com',
-              'uid': 8,
+              'uid': 1,
               'username': 'Test'}}
 
 

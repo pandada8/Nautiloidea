@@ -5,7 +5,7 @@ import random
 import string
 import hashlib
 import json
-from datetime import datetime, timedelta
+from datetime import datetime
 import logging
 
 if app.debug:
@@ -15,6 +15,7 @@ else:
 
 
 logging.getLogger("peewee").setLevel(logging.INFO)
+
 
 def randomSalt(length=20):
     return "".join([random.choice(string.printable[:-5]) for i in range(length)])
@@ -39,6 +40,7 @@ class BaseModel(Model):
 
     class Meta:
         database = db
+
 
 class JSONField(TextField):
 
@@ -77,11 +79,12 @@ class User(BaseModel):
             "devices": [i._to_dict() for i in self.device_set]
         }
 
+
 class Device(BaseModel):
     deviceid = CharField(max_length=256, unique=True)
     last_status = JSONField(default={})
     owner = ForeignKeyField(User, null=True)
-    phone_number = CharField()
+    deviceName = CharField(null=True)
 
     def online(self):
         now = datetime.now().timestamp()
@@ -94,11 +97,18 @@ class Device(BaseModel):
         if self.last_status['event'] == 'online' or self.last_status['event'] == 'heartbeat':
             return True
 
+
 class DeviceRecords(BaseModel):
     device = ForeignKeyField(Device)
     time = DateTimeField()
-    position = TextField(null=True)
+    position = JSONField(null=True)
     event = CharField()  # online or heartbeat
+
+    def _to_dict(self):
+        ret = super(DeviceRecords, self)._to_dict()
+        # ret.pop('id')
+        return ret
+
 
 class OperationQueue(BaseModel):
     target_device = ForeignKeyField(Device)
@@ -108,6 +118,7 @@ class OperationQueue(BaseModel):
     sent = BooleanField(default=False)
     responsed = DateTimeField(null=True)
     msg = JSONField(default={})
+
 
 class UploadedFile(BaseModel):
     user = ForeignKeyField(User)

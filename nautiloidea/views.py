@@ -4,20 +4,22 @@ from . import model
 from datetime import datetime
 from uuid import uuid4 as uuid
 import os
+from functools import wraps
 
 __folder__ = os.path.split(__file__)[0]
 
-def update_position():
+
+def update_position(func):
     @wraps(func)
     def wrappers(*args, **kwargs):
         if request.args.get('deviceid'):
             g.t = datetime.now().timestamp()
-            device = model.Device.try_get(deviceid=deviceid)
-            position = request.args.get('gps') or request.form.get('gps')
-            if device:
+            g.device = model.Device.try_get(deviceid=request.args.get('deviceid'))
+            position = request.args.get('latitude')
+            if g.device:
                 if position:
-                    latitude, longtitude = position.split("|")
-                    device.last_status['position'] = {"latitude": int(latitude), "longtitude": int(longtitude), "t": g.t}
+                    latitude, longtitude = request.args.get('latitude'), request.args.get('longitude')
+                    g.position = {"latitude": float(latitude), "longtitude": float(longtitude), "t": g.t}
                 return func(*args, **kwargs)
             else:
                 abort(403)
@@ -30,10 +32,12 @@ def update_position():
 def index_page():
     return send_from_directory(os.path.join(__folder__, 'static'), 'index.html')
 
+
 @app.route('/user')
 @need_login()
 def user_index():
     return render_template('user.html', data=g.user.user_info())
+
 
 @app.route('/signup', methods=["POST", "GET"])
 def register_users():
@@ -54,6 +58,7 @@ def register_users():
             session['user'] = user.id
             return jsonify(err=0, msg="成功注册")
 
+
 @app.route('/signin', methods=["POST", "GET"])
 def login_user():
     if request.method == "GET":
@@ -68,6 +73,7 @@ def login_user():
         if user and user[0].check_pwd(password):
             # login the user
             session['user'] = user[0].id
+            print(user[0].user_info())
             return jsonify(err=0, msg="登陆成功", user=user[0].user_info())
         else:
             return jsonify(err=1, msg="登录失败")
@@ -77,6 +83,13 @@ def login_user():
 def logout_user():
     session.clear()
     return redirect('/')
+
+
+def check_password():
+    password = request.form.get('password')
+    if not g.user.check_pwd(password):
+        abort(403)
+
 
 @app.route("/operation", methods=['GET', 'POST'])
 def save_operation():
@@ -89,14 +102,16 @@ def save_operation():
 
         if operation == 'alarm':
             to_send['operation'] = 'alarm'
+        elif operation == 'disalarm':
+            to_send['operation'] = 'disalarm'
         elif operation == 'erase':
-            password = request.form.get('password')
-            if g.users.check_pwd(password):
-                to_send['operation'] = 'erase'
-            else:
-                abort(403)
+            check_password()
+            to_send['operation'] = 'erase'
         elif operation == 'lock':
             to_send['operation'] = 'lock'
+        elif operation == 'unlock':
+            check_password()
+            to_send['operation'] = 'unlock'
         elif operation == 'get_file':
             to_send['operation'] = 'get_life'
             to_send['path'] = 'get_life'
@@ -122,55 +137,35 @@ def save_operation():
                 abort(400)
         return jsonify(err=0, msg="操作成功")
 
+
 @app.route('/online')
+@update_position
 def device_online():
-    deviceid = request.args['deviceid']  #TODO: MODIFY HERE
-    device = model.Device.try_get(deviceid=deviceid)  #FIXME: Fill the position
-    position = request.args.get('gps', '')
-    if device:
-        with model.db.transaction():
-            now = datetime.now()
-            device_record = model.DeviceRecords.create(event="online", device=device, time=now, position=position)
-            device.last_status = device_record._to_dict()
-            device.save()
-        return jsonify(err=0)
-    else:
-        return jsonify(err=1, msg="No Such Device, You Should bind first")
+    with model.db.transaction():
+        device_record = model.DeviceRecords.create(event="online", device=g.device, time=g.t, position=g.position)
+        g.device.last_status['status'] = device_record._to_dict()
+        g.device.last_status['position'] = device_record._to_dict()
+    return jsonify(err=0)
+
 
 @app.route('/offline')
 def device_offline():
-    deviceid = request.args['deviceid']
-    device = model.Device.try_get(deviceid=deviceid)
-    position = request.args.get('gps', '')
-    if device:
-        with model.db.transaction():
-            now = datetime.now()
-            device_record = model.DeviceRecords.create(event="offline", device=device, time=now, position=position)
-            device.last_status = device_record._to_dict()
-            device.save()
-        return jsonify(err=0)
-    else:
-        return jsonify(err=1, msg="No Such Device, You Should bind first")
+    with model.db.transaction():
+        device_record = model.DeviceRecords.create(event="offline", device=g.device, time=g.t, position=g.position)
+        g.device.last_status['status'] = device_record._to_dict()
+        g.device.last_status['position'] = device_record._to_dict()
+    return jsonify(err=0)
+
 
 @app.route('/heartbeat')
+@update_position
 def device_heartbeat():
-    deviceid = request.args['deviceid']
-    device = model.Device.try_get(deviceid=deviceid)
-    position = request.args.get('gps', '')
-    if device:
-        with model.db.transaction():
-            now = datetime.now()
-            device_record = model.DeviceRecords.create(event="heartbeat", device=device, time=now, position=position)
-            device.last_status = device_record._to_dict()
-            device.save()
-        return jsonify(err=0)
-    else:
-        return jsonify(err=1, msg="No Such Device, You Should bind first")
+    with model.db.transaction():
+        device_record = model.DeviceRecords.create(event="heartbeat", device=g.device, time=g.t, position=g.position)
+        g.device.last_status['status'] = device_record._to_dict()
+        g.device.last_status['position'] = device_record._to_dict()
+    return jsonify(err=0)
 
-@app.route('/api/message')
-def user_massage():
-    msgs = []
-    return jsonify(err=0, msg=msgs)
 
 @app.route("/status")
 @need_login()
@@ -179,7 +174,7 @@ def return_status():
     if device_id:
         device = model.Device.try_get(deviceid=device_id)
         if device and device.owner.id == g.user.id:
-            return jsonify(err=0, status=device.last_status)
+            return jsonify(err=0, status=device.last_status)  # TODO: send user the information
     return jsonify(err=1, msg="Oops")
 
 
@@ -187,28 +182,25 @@ def return_status():
 @need_login()
 def device_bind():
     deviceid = request.form['deviceid']
-    phone_number = request.form.get("deviceName", '')
+    deviceName = request.form.get("deviceName")
     if model.Device.try_get(deviceid=deviceid):
         return jsonify(err=1, msg="The devices is around bound, you should unbind it first")
     with model.db.transaction():
-        device = model.Device.create(deviceid=deviceid, owner=g.user, last_status={}, phone_number=phone_number)
-        g.user.devices.append(dict(deviceid=deviceid, phone_number=phone_number, id=device.id))
+        device = model.Device.create(deviceid=deviceid, owner=g.user, last_status={}, deviceName=deviceName)
+        g.user.devices.append(dict(deviceid=deviceid, deviceName=deviceName, id=device.id))
         g.user.save()
     return jsonify(err=0, msg='bind success')
 
+
 @app.route('/upload')
+@update_position
 def device_upload():
-    deviceid = request.args['deviceid']
-    now = datetime.now()
-    device = model.Device.try_get(deviceid=deviceid)
-    user = device.user
-    if not device:
-        abort(403)
+    user = g.device.user
     target_file_path = request.form['path']
     filename = uuid()
-    saved_path = "{}/{}/{}".format(now.year, now.month, filename)
+    saved_path = "{}/{}/{}".format(g.t.year, g.t.month, filename)
     os.makedirs(os.path.join(app.config['UPLOAD'], os.path.split(saved_path)[0]), exist_ok=True)
-    request.files[0].save(os.path.join(saved_path))
+    request.files[0].save(os.path.join(saved_path))  # TODO Save the database and path
 
 
 @app.route('/f/<int:file_id>')
@@ -221,7 +213,7 @@ def get_file(file_id):
         else:
             response = make_response()
             response.headers['Content-Type'] = ''
-            response.headers['X-Accel-Redirect'] = file.saved_path # TODO write a nginx config to fix the url
+            response.headers['X-Accel-Redirect'] = file.saved_path  # TODO write a nginx config to fix the url
             return response
     else:
         abort(404)

@@ -33,18 +33,19 @@ def md5(s):
 
 @asyncio.coroutine
 def send_task(data):
+    data.operation["task_id"] = data.id
     send_data = {
-        "device_token": data.target_device.deviceid,
+        "account": data.target_device.deviceid,
         "message_type": 2,
-        "message": json.dumps({'content':data.operation ,'title': 'none', "custom_content": {'task_id': data.id}}, ensure_ascii=False),
+        "message": json.dumps({'content':data.operation ,'title': 'Empty'}, ensure_ascii=False),
         "timestamp": int(time.time()),
         "access_id": appid,
         "expire_time": 86400,
     }
-    sign = "POSTopenapi.xg.qq.com/v2/push/single_device{}{}".format(''.join([str(i)+"="+str(j) for i,j in sorted(send_data.items(), key=lambda x:x[0])]), token)
+    sign = "POSTopenapi.xg.qq.com/v2/push/single_account{}{}".format(''.join([str(i)+"="+str(j) for i,j in sorted(send_data.items(), key=lambda x:x[0])]), token)
     send_data['sign'] = md5(sign)
     logging.debug('Sign %s got %s', sign, send_data['sign'])
-    response = yield from aiohttp.request('POST', 'http://openapi.xg.qq.com/v2/push/single_device', data=send_data)
+    response = yield from aiohttp.request('POST', 'http://openapi.xg.qq.com/v2/push/single_account', data=send_data)
     content = json.loads((yield from response.read()).decode())
     logging.debug("Returned %s",content)
     if content['ret_code']:

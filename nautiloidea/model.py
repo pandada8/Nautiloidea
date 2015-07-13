@@ -1,17 +1,20 @@
 from peewee import Model, SqliteDatabase, PostgresqlDatabase, CharField, BooleanField, ForeignKeyField, DateTimeField, TextField
-from nautiloidea import app
+from nautiloidea import app, DateTimeJsonEncoder
 import os
 import random
 import string
 import hashlib
 import json
 from datetime import datetime, timedelta
+import logging
 
 if app.debug:
     db = SqliteDatabase(os.path.normpath(os.path.join(os.path.split(__file__)[0], '../data.sqlite3')))
 else:
     db = PostgresqlDatabase()  # TODO: Using the config the config the password and user
 
+
+logging.getLogger("peewee").setLevel(logging.INFO)
 
 def randomSalt(length=20):
     return "".join([random.choice(string.printable[:-5]) for i in range(length)])
@@ -47,7 +50,7 @@ class JSONField(TextField):
             return {}
 
     def db_value(self, value):
-        return json.dumps(value)
+        return json.dumps(value, cls=DateTimeJsonEncoder)
 
 
 class User(BaseModel):
@@ -78,7 +81,7 @@ class Device(BaseModel):
     deviceid = CharField(max_length=256, unique=True)
     last_status = JSONField(default={})
     owner = ForeignKeyField(User, null=True)
-    phone_number = CharField(unique=True)
+    phone_number = CharField()
 
     def online(self):
         now = datetime.now().timestamp()

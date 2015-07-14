@@ -20,7 +20,7 @@ def update_position(func):
                 if position:
                     latitude, longtitude = request.args.get('latitude'), request.args.get('longitude')
                     g.position = {"latitude": float(latitude), "longtitude": float(longtitude), "t": g.t}
-                    g.user.last_status['position'] = g.position
+                    g.device.last_status['position'] = g.position
                 return func(*args, **kwargs)
             else:
                 abort(403)
@@ -145,6 +145,7 @@ def device_online():
     with model.db.transaction():
         device_record = model.DeviceRecords.create(event="online", device=g.device, time=g.t, position=g.position)
         g.device.last_status['status'] = device_record._to_dict()
+        g.device.save()
     return jsonify(err=0)
 
 
@@ -153,6 +154,7 @@ def device_offline():
     with model.db.transaction():
         device_record = model.DeviceRecords.create(event="offline", device=g.device, time=g.t, position=g.position)
         g.device.last_status['status'] = device_record._to_dict()
+        g.device.save()
     return jsonify(err=0)
 
 
@@ -162,6 +164,7 @@ def device_heartbeat():
     with model.db.transaction():
         device_record = model.DeviceRecords.create(event="heartbeat", device=g.device, time=g.t, position=g.position)
         g.device.last_status['status'] = device_record._to_dict()
+        g.device.save()
     return jsonify(err=0)
 
 

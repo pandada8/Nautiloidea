@@ -26,10 +26,13 @@ class Menu extends React.Component {
 
 class Phone extends React.Component {
     render() {
-        var {phone_number, last_status: { time, event }} = this.props.device,
+        console.log(this.props.device)
+        var {deviceName, last_status} = this.props.device,
+            time = last_status.status ? last_status.status.time * 1000 : null,
+            event = last_status.status ? last_status.status.event : null,
             now = Date.now(),
             status = '未知';
-
+        console.log(time, event, now)
         if(time && event){
             if(event != 'offline'){
                 if(now - time > 60 * 1000){
@@ -41,7 +44,6 @@ class Phone extends React.Component {
                 status = '离线'
             }
         }
-        time = time === undefined ? "未知" : new Date(time).toLocaleString()
         var icon = {'未知':'minus circle', '离线': "red remove circle", '在线': "green check circle"}[status] + ' icon status';
         var phone_url = "phone/" + this.props.device.deviceid;
         var ui_fix = {marginTop: '30px !important'};
@@ -49,10 +51,10 @@ class Phone extends React.Component {
             <div className="image">
             	<i className={icon}></i>
                 <p className="ui centered header status-text">{status}</p>
-            	<p className="ui centered header">{phone_number}</p>
+            	<p className="ui centered header">{deviceName}</p>
             </div>
             <div className="content">
-            	<p>上次通信：{time}</p>
+            	<p>上次通信：{time === null ? "未知" : new Date(time).toLocaleString()}</p>
             </div>
         </Link>
     }
@@ -93,12 +95,11 @@ class App extends React.Component {
 class PhonePage extends React.Component{
     constructor(props){
         super(props)
-        this.state = {messages: [], last_status: {}}
+        this.state = {messages: [], last_status: {}, init_position: {}}
         this.deviceid = this.props.params.phone_id
     }
-    componentWillMount(){
-        this.timer = setInterval(()=>{
-            request.get('/status')
+    update(cb){
+        request.get('/status')
                 .query({device: this.deviceid})
                 .end((err, resp)=>{
                     if(err){
@@ -107,16 +108,26 @@ class PhonePage extends React.Component{
                         if(resp.err){
                             console.log(err)
                         }else{
-                            this.setState({last_status: resp.status})
+                            cb(resp.body.status)
                         }
                     }
                 })
+    }
+    componentWillMount(){
+        this.update((status) => {
+            this.setState({last_status: status, init_position: status.position})
+        })
+        this.timer = setInterval(()=>{
+            this.update((status) => {
+                this.setState({last_status: status})
+                this.refs.map.update(status.position)
+            })
         }, 2000)
     }
     erase(){
         var eraseNode = React.findDOMNode(this.refs.erase)
         eraseNode.className += ' loading'
-        var data = {operaition: "erase"}
+        var data = {operation: "erase"}
         this.sendRequests(data, ()=>{
             eraseNode.className = eraseNode.className.replace("loading", '')
             this.alert("擦除手机请求发送成功")
@@ -130,6 +141,34 @@ class PhonePage extends React.Component{
             alarm.className = alarm.className.replace("loading", '')
             if(!err && !response.err){
                 this.alert("响铃请求发送成功")
+            }else{
+                this.alert('Oops, 服务器出了一些问题')
+            }
+
+        })
+    }
+    unlock(){
+        var alarm = React.findDOMNode(this.refs.unlock)
+        alarm.className += ' loading'
+        var data = {operation: "unlock"}
+        this.sendRequests(data, (err, response)=>{
+            alarm.className = alarm.className.replace("loading", '')
+            if(!err && !response.err){
+                this.alert("解锁请求发送成功")
+            }else{
+                this.alert('Oops, 服务器出了一些问题')
+            }
+
+        })
+    }
+    disalarm(){
+        var alarm = React.findDOMNode(this.refs.disalarm)
+        alarm.className += ' loading'
+        var data = {operation: "disalarm"}
+        this.sendRequests(data, (err, response)=>{
+            alarm.className = alarm.className.replace("loading", '')
+            if(!err && !response.err){
+                this.alert("取消响铃请求发送成功")
             }else{
                 this.alert('Oops, 服务器出了一些问题')
             }
@@ -150,7 +189,18 @@ class PhonePage extends React.Component{
         }, 3000)
     }
     lock(){
+        var alarm = React.findDOMNode(this.refs.lock)
+        alarm.className += ' loading'
+        var data = {operation: "lock"}
+        this.sendRequests(data, (err, response)=>{
+            alarm.className = alarm.className.replace("loading", '')
+            if(!err && !response.err){
+                this.alert("锁定请求发送成功")
+            }else{
+                this.alert('Oops, 服务器出了一些问题')
+            }
 
+        })
     }
     getFile(){
 
@@ -161,8 +211,10 @@ class PhonePage extends React.Component{
     }
     render(){
         // TODO: Using data
+        var time = this.state.last_status.position ? new Date(this.state.last_status.position.t).toLocaleString() : "未知";
         return <div className="sixteen wide column">
-            <BaiduMap position={this.state.last_status.position}/>
+            <BaiduMap position={this.state.init_position} ref="map"/>
+            <span>{}</span>
             <div className="ui segments">
                 <div className="ui segment">
                     <p>操作</p>
@@ -171,7 +223,9 @@ class PhonePage extends React.Component{
                     <div className="ui red button" onClick={this.erase.bind(this)} ref="erase">擦除手机</div>
                     <div className="ui yellow button" onClick={this.alarm.bind(this)} ref="alarm">响铃</div>
                     <div className="ui yellow button" onClick={this.lock.bind(this)} ref="lock">锁定手机</div>
-                    <div className="ui yellow button" onClick={this.getFile.bind(this)} ref="getFile    ">获取文件</div>
+                    <div className="ui yellow button" onClick={this.unlock.bind(this)} ref="unlock">解锁手机</div>
+                    <div className="ui yellow button" onClick={this.disalarm.bind(this)} ref="disalarm">取消响铃</div>
+                    <div className="ui yellow button" onClick={this.getFile.bind(this)} ref="getFile">获取文件</div>
                 </div>
             </div>
             <div className="ui messages">

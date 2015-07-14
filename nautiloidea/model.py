@@ -106,7 +106,7 @@ class DeviceRecords(BaseModel):
 
     def _to_dict(self):
         ret = super(DeviceRecords, self)._to_dict()
-        # ret.pop('id')
+        ret.pop('id')
         return ret
 
 

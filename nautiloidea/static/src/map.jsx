@@ -2,25 +2,14 @@ import {ak} from "./config.jsx";
 import React from "react";
 
 class BaiduMap extends React.Component {
-    constructor(props){
-        super(props)
-        this.state = {position: this.props.position}
-    }
     componentDidMount(){
-        if(!window.BMAP){
+        if(!window.BMap){
             this.loadScript(() => {
-                this.forceUpdate()
+                this.forceUpdate()    
                 setTimeout(() => {
-                    if (this.state.position){
-                        this.init_maps()
-                    }
+                    this.init_maps()
                 }, 10)
             })
-        }else{
-            if (this.state.position){
-                this.forceUpdate()
-                this.init_maps()
-            }
         }
     }
     loadScript(cb){
@@ -30,20 +19,26 @@ class BaiduMap extends React.Component {
         script.onload = cb ? cb : null;
         document.body.appendChild(script)
     }
+    update(position){
+        console.log(position.longtitude, position.latitude)
+        var center = new BMap.Point(position.longtitude, position.latitude);
+        var marker = new BMap.Marker(center);
+        this.map.clearOverlays();
+        // this.map.panTo(center);
+        this.map.centerAndZoom(center, 15);
+        this.map.addOverlay(marker);
+    }
     init_maps (){
         var dom = React.findDOMNode(this.refs.target)
-        var map = this.state.map = new BMap.Map(dom)
+        var map = this.map = new BMap.Map(dom)
         map.enableScrollWheelZoom()
         map.enableKeyboard()
         if (this.props.position){
-            var center = new BMap.Point(this.props.position.longitude, this.props.position.latitude);
-            var marker = new BMap.Marker(center);
-            map.centerAndZoom(center, 15);
-            map.addOverlay(marker);
+            this.update(this.props.position)
+        }else{
+            var center = new BMap.Point(116.399, 39.91);
+            map.centerAndZoom(center, 15)
         }
-    }
-    update_position(longitude, latitude){
-
     }
     render(){
         var style = {
@@ -51,8 +46,9 @@ class BaiduMap extends React.Component {
             "width": "100%"
         }
         var target_style = {height: "100%"};
-        console.log(this.props.position)
-        if(this.state.loaded){
+        console.log(this.props)
+
+        if(window.BMap){
             return <div className="ui segment" style={style}>
                 <div className="" style={target_style} ref="target"></div>
             </div>

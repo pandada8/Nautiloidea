@@ -18,7 +18,7 @@ def update_position(func):
             position = request.args.get('latitude')
             if g.device:
                 if position:
-                    latitude, longtitude = request.args.get('latitude'), request.args.get('longitude')
+                    latitude, longtitude = request.args['latitude'], request.args['longitude']
                     g.position = {"latitude": float(latitude), "longtitude": float(longtitude), "t": g.t}
                     g.device.last_status['position'] = g.position
                 return func(*args, **kwargs)
@@ -175,7 +175,7 @@ def return_status():
     if device_id:
         device = model.Device.try_get(deviceid=device_id)
         if device and device.owner.id == g.user.id:
-            return jsonify(err=0, status=device.last_status)  # TODO: send user the information
+            return jsonify(err=0, status=device.last_status, files=device.files)  # TODO: send user the information
     return jsonify(err=1, msg="Oops")
 
 
@@ -193,21 +193,51 @@ def device_bind():
     return jsonify(err=0, msg='bind success')
 
 
-@app.route('/upload')
+@app.route('/callback/fileupload', methods=["POST"])
 @update_position
 def device_upload():
+    operation_id = int(request.args.get("task_id"))
     user = g.device.user
-    target_file_path = request.form['path']
-    filename = uuid()
-    saved_path = "{}/{}/{}".format(g.t.year, g.t.month, filename)
-    os.makedirs(os.path.join(app.config['UPLOAD'], os.path.split(saved_path)[0]), exist_ok=True)
-    request.files[0].save(os.path.join(saved_path))  # TODO Save the database and path
+    task = model.OperationQueue.try_get(id=operation_id)
+    if task:
+        original_path = request.form['path']
+        fid = uuid()
+        saved_path = "{}/{}/{}".format(g.t.year, g.t.month, fid)
+        os.makedirs(os.path.join(app.config["UPLOAD"], os.path.split(saved_path)[0]), exist_ok=True)
+        request.files[0].save(os.join(app.config["UPLOAD"], saved_path))
+
+        model.UploadedFile.create(user=user, device=g.device, original_path=original_path, saved_path=saved_path, file_id=fid)
+
+        return jsonify(ret=0, msg="OK")
+    else:
+        abort(400)
 
 
-@app.route('/f/<int:file_id>')
+@app.route("/callback/filelist", methods=["POST"])
+@update_position
+def device_filelist():
+    operation_id = int(request.args.get("task_id"))
+    task = model.OperationQueue.try_get(id=operation_id)
+    if task:
+        with model.db.transaction():
+
+            now = datetime.now()
+            data = request.get_json()
+            task.responsed = now
+            task.save()
+
+            g.device.files = {'data': data, "time": now}
+            g.device.save()
+
+        return jsonify(err=0, msg="保存成功")
+    else:
+        abort(400)
+
+
+@app.route('/f/<file_id>')
 @need_login()
 def get_file(file_id):
-    file = model.try_get(id=file_id)
+    file = model.try_get(fid=file_id)
     if file and file.user.id == g.user.id:
         if app.debug:
             return send_from_directory(app.config['UPLOAD'], file.saved_path)

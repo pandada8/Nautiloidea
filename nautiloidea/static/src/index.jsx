@@ -115,11 +115,15 @@ class PhonePage extends React.Component{
     }
     componentWillMount(){
         this.update((status) => {
-            this.setState({last_status: status, init_position: status.position})
+            this.setState({last_status: status, init_position: status.position, files: status.files})
         })
         this.timer = setInterval(()=>{
             this.update((status) => {
-                this.setState({last_status: status})
+                if (status.files.time > this.state.files.time){
+                    // the files is updated
+                    this.setState({files_update: true})
+                }
+                this.setState({last_status: status, files: status.files})
                 this.refs.map.update(status.position)
             })
         }, 2000)
@@ -212,6 +216,13 @@ class PhonePage extends React.Component{
     render(){
         // TODO: Using data
         var time = this.state.last_status.position ? new Date(this.state.last_status.position.t).toLocaleString() : "未知";
+        if(this.state.files && this.state.files.data){
+            // we got some data
+            var getFileBtn = <div className="ui yellow button" onClick={this.getFile.bind(this)} ref="getFile">获取文件</div>
+        }else{
+            var getFileBtn = "";
+        }
+        var unlock_btn = <div className="ui yellow button" onClick={this.getFile.bind(this)} ref="getFile">刷新文件列表</div>
         return <div className="sixteen wide column">
             <BaiduMap position={this.state.init_position} ref="map"/>
             <span>{}</span>
@@ -248,11 +259,37 @@ class BindGuidePage extends React.Component{
     }
 }
 
+class PhoneGetFile extends React.Component {
+    // directly build thefile tree ignore the performnace issue
+    getFile(){
+        request.get('/status')
+                .query({device: this.deviceid})
+                .end((err, resp)=>{
+                    if(err){
+                        console.error(err)
+                    }else{
+                        if(resp.err){
+                            console.log(err)
+                        }else{
+                            cb(resp.body.status)
+                        }
+                    }
+                })
+    }
+    render(){
+        return <div className="sixteen wide column">
+            <div className="ui segment">
+            </div>
+        </div>
+    }
+}
+
 React.render(
     <Router history={history}>
         <Route component={App}>
             <Route path="/" component={IndexPage} />
             <Route path="phone/:phone_id" component={PhonePage} />
+            <Route path="phone/:phone_id/files" component={PhoneGetFile} />
             <Route path="bind_guide" component={BindGuidePage} />
         </Route>
      </Router>, document.getElementById('app')

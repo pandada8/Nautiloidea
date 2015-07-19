@@ -1,4 +1,4 @@
-from peewee import Model, SqliteDatabase, PostgresqlDatabase, CharField, BooleanField, ForeignKeyField, DateTimeField, TextField
+from peewee import Model, SqliteDatabase, PostgresqlDatabase, CharField, BooleanField, ForeignKeyField, DateTimeField, TextField, UUIDField
 from nautiloidea import app, DateTimeJsonEncoder
 import os
 import random
@@ -85,17 +85,7 @@ class Device(BaseModel):
     last_status = JSONField(default={})
     owner = ForeignKeyField(User, null=True)
     deviceName = CharField(null=True)
-
-    def online(self):
-        now = datetime.now().timestamp()
-        if not self.last_status:
-            return False
-        if now - self.last_status['time'] > 3 * 60:
-            return False
-        if self.last_status['event'] == 'offline':
-            return False
-        if self.last_status['event'] == 'online' or self.last_status['event'] == 'heartbeat':
-            return True
+    files = JSONField(default={})
 
 
 class DeviceRecords(BaseModel):
@@ -125,6 +115,7 @@ class UploadedFile(BaseModel):
     device = ForeignKeyField(Device)
     origin_path = TextField()
     saved_path = TextField()
+    file_id = UUIDField(unique=True)
 
 
 def init_db():

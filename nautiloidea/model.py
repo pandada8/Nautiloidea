@@ -115,7 +115,7 @@ class UploadedFile(BaseModel):
     device = ForeignKeyField(Device)
     origin_path = TextField()
     saved_path = TextField()
-    file_id = UUIDField(unique=True)
+    file_id = CharField(unique=True)
 
 
 def init_db():

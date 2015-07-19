@@ -201,7 +201,7 @@ def device_upload():
     task = model.OperationQueue.try_get(id=operation_id)
     if task:
         original_path = request.form['path']
-        fid = uuid()
+        fid = str(uuid())
         saved_path = "{}/{}/{}".format(g.t.year, g.t.month, fid)
         os.makedirs(os.path.join(app.config["UPLOAD"], os.path.split(saved_path)[0]), exist_ok=True)
         request.files[0].save(os.join(app.config["UPLOAD"], saved_path))
@@ -217,12 +217,14 @@ def device_upload():
 @update_position
 def device_filelist():
     operation_id = int(request.args.get("task_id"))
+    print(operation_id)
     task = model.OperationQueue.try_get(id=operation_id)
+    print('task')
     if task:
         with model.db.transaction():
 
             now = datetime.now()
-            data = request.get_json()
+            data = request.get_json(force=True)
             task.responsed = now
             task.save()
 

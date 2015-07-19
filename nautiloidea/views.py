@@ -13,7 +13,8 @@ def update_position(func):
     @wraps(func)
     def wrappers(*args, **kwargs):
         if request.args.get('deviceid'):
-            g.t = datetime.now().timestamp()
+            g.now = datetime.now()
+            g.t = g.now.timestamp()
             g.device = model.Device.try_get(deviceid=request.args.get('deviceid'))
             position = request.args.get('latitude')
             if g.device:
@@ -115,11 +116,11 @@ def save_operation():
             to_send['operation'] = 'unlock'
         elif operation == 'get_file':
             to_send['operation'] = 'get_life'
-            to_send['path'] = 'get_life'
+            to_send['path'] = request.form['path']
         elif operation == "get_list":
             to_send['operation'] = 'get_list'
-            if 'path' in request.form:
-                to_send['path'] = request.form['path']
+            # if 'path' in request.form:
+            #     to_send['path'] = request.form['path']
         else:
             print(operation)
             abort(400)
@@ -197,16 +198,17 @@ def device_bind():
 @update_position
 def device_upload():
     operation_id = int(request.args.get("task_id"))
-    user = g.device.user
+    user = g.device.owner
     task = model.OperationQueue.try_get(id=operation_id)
     if task:
         original_path = request.form['path']
+        print(original_path)
         fid = str(uuid())
-        saved_path = "{}/{}/{}".format(g.t.year, g.t.month, fid)
+        saved_path = "{}/{}/{}".format(g.now.year, g.now.month, fid)
         os.makedirs(os.path.join(app.config["UPLOAD"], os.path.split(saved_path)[0]), exist_ok=True)
-        request.files[0].save(os.join(app.config["UPLOAD"], saved_path))
+        list(request.files.values())[0].save(os.path.join(app.config["UPLOAD"], saved_path))
 
-        model.UploadedFile.create(user=user, device=g.device, original_path=original_path, saved_path=saved_path, file_id=fid)
+        model.UploadedFile.create(user=user, device=g.device, original_path=original_path, saved_path=saved_path, file_id=fid, time=g.now)
 
         return jsonify(ret=0, msg="OK")
     else:

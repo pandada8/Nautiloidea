@@ -116,6 +116,7 @@ class UploadedFile(BaseModel):
     origin_path = TextField()
     saved_path = TextField()
     file_id = CharField(unique=True)
+    time = DateTimeField()
 
 
 def init_db():

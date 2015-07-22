@@ -255,7 +255,7 @@ class PhonePage extends React.Component{
         var alarm = React.findDOMNode(this.refs.unlock)
         alarm.className += ' loading'
         var data = {operation: "unlock"}
-        var password = "我们需要您的密码来验证您的身份";
+        var password = prompt("我们需要您的密码来验证您的身份");
         data['password'] = password;
         this.sendRequests(data, (err, response)=>{
             alarm.className = alarm.className.replace("loading", '')

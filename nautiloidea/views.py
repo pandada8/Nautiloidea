@@ -226,7 +226,10 @@ def device_filelist():
         with model.db.transaction():
 
             now = datetime.now()
-            data = request.get_json(force=True)
+            # data = request.get_json(force=True)
+            print(request.form)
+            data = request.form['FileList']
+            data = json.loads(data)
             task.responsed = now
             task.save()
 

@@ -5,11 +5,13 @@ class BaiduMap extends React.Component {
     componentDidMount(){
         if(!window.BMap){
             this.loadScript(() => {
-                this.forceUpdate()    
+                this.forceUpdate()
                 setTimeout(() => {
                     this.init_maps()
                 }, 10)
             })
+        }else{
+            this.init_maps()
         }
     }
     loadScript(cb){

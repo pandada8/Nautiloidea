@@ -241,8 +241,9 @@ def device_filelist():
 @app.route('/f/<file_id>')
 @need_login()
 def get_file(file_id):
-    file = model.try_get(fid=file_id)
+    file = model.UploadedFile.try_get(file_id=file_id)
     if file and file.user.id == g.user.id:
+        print(file, file.user.id)
         if app.debug:
             return send_from_directory(app.config['UPLOAD'], file.saved_path)
         else:

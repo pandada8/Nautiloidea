@@ -176,7 +176,7 @@ class FileList extends React.Component{
                         {this.state.finished.map((x) => {
                             return <div className="item">
                                 <div className="content">
-                                    <a href={"/f/"+x.saved_path}>{x.origin_path}</a>
+                                    <a href={"/f/"+x.file_id}>{x.origin_path}</a>
                                 </div>
                             </div>
                         })}

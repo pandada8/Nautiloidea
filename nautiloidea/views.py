@@ -201,14 +201,14 @@ def device_upload():
     user = g.device.owner
     task = model.OperationQueue.try_get(id=operation_id)
     if task:
-        original_path = request.form['path']
-        print(original_path)
+        origin_path = request.form['path']
+        print(origin_path)
         fid = str(uuid())
         saved_path = "{}/{}/{}".format(g.now.year, g.now.month, fid)
         os.makedirs(os.path.join(app.config["UPLOAD"], os.path.split(saved_path)[0]), exist_ok=True)
         list(request.files.values())[0].save(os.path.join(app.config["UPLOAD"], saved_path))
 
-        model.UploadedFile.create(user=user, device=g.device, original_path=original_path, saved_path=saved_path, file_id=fid, time=g.now)
+        model.UploadedFile.create(user=user, device=g.device, origin_path=origina_path, saved_path=saved_path, file_id=fid, time=g.now)
 
         return jsonify(ret=0, msg="OK")
     else:

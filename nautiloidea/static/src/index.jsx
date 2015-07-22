@@ -170,6 +170,18 @@ class FileList extends React.Component{
                         })}
                     </div>
                 </div>
+                <div className="column">
+                    <p className="head">完成的文件</p>
+                    <div className="ui list">
+                        {this.state.finished.map((x) => {
+                            return <div className="item">
+                                <div className="content">
+                                    <a href={"/f/"+x.saved_path}>{x.origin_path}</a>
+                                </div>
+                            </div>
+                        })}
+                    </div>
+                </div>
             </div>
 
         </div>
@@ -192,7 +204,7 @@ class PhonePage extends React.Component{
                         if(resp.err){
                             console.log(err)
                         }else{
-                            cb(resp.body.status, resp.body.files, resp.body.finished)
+                            cb(resp.body.status, resp.body.files, resp.body.uploaded)
                         }
                     }
                 })

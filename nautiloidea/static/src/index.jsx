@@ -212,6 +212,7 @@ class PhonePage extends React.Component{
     componentWillMount(){
         this.update((status, files, finished) => {
             this.setState({last_status: status, init_position: status.position, files: files})
+            this.refs.map.update(status.position)
         })
         this.timer = setInterval(()=>{
             this.update((status, files, finished) => {

@@ -11,7 +11,10 @@ class BaiduMap extends React.Component {
                 }, 10)
             })
         }else{
-            this.init_maps()
+            setTimeout(() => {
+                console.log(this.props)
+                this.init_maps()
+            }, 10)
         }
     }
     loadScript(cb){
@@ -22,13 +25,17 @@ class BaiduMap extends React.Component {
         document.body.appendChild(script)
     }
     update(position){
-        console.log(position.longtitude, position.latitude)
-        var center = new BMap.Point(position.longtitude, position.latitude);
-        var marker = new BMap.Marker(center);
-        this.map.clearOverlays();
-        // this.map.panTo(center);
-        this.map.centerAndZoom(center, 15);
-        this.map.addOverlay(marker);
+        if(this.map){
+            console.log(position.longtitude, position.latitude)
+            var center = new BMap.Point(position.longtitude, position.latitude);
+            var marker = new BMap.Marker(center);
+            this.map.clearOverlays();
+            // this.map.panTo(center);
+            this.map.centerAndZoom(center, 15);
+            this.map.addOverlay(marker);
+        }else{
+            this.props.position = position;
+        }
     }
     init_maps (){
         var dom = React.findDOMNode(this.refs.target)
@@ -37,9 +44,6 @@ class BaiduMap extends React.Component {
         map.enableKeyboard()
         if (this.props.position){
             this.update(this.props.position)
-        }else{
-            var center = new BMap.Point(116.399, 39.91);
-            map.centerAndZoom(center, 15)
         }
     }
     render(){

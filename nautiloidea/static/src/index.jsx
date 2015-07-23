@@ -123,16 +123,14 @@ class FileList extends React.Component{
         }
     }
     download(x){
-        var loader =  React.findDOMNode(this.refs.loader)
-        loader.className += " active"
+        console.log(this)
         if(!x.isFolder){
             this.props.download(x.path, ()=>{
-                loader.className = loader.className.replace(' active', '')
+                
             })
         }else{
             console.log('Jump to new path', x.path);
             this.setState({path: x.path})
-            loader.className = loader.className.replace(' active', '')
         }
     }
     up(){
@@ -150,41 +148,50 @@ class FileList extends React.Component{
         }else{
             var files = []
         }
-        return <div className="ui segment">
-            <div className="ui inverted dimmer" ref="loader">
-                <div className="ui text loader">Loading</div>
-            </div>
-            <div className="ui two column">
+        return <div className="ui two columns stackable grid">
                 <div className="column">
-                    <p>{this.state.path}</p>
-                    <div className="ui list">
-                        <div className='item' onClick={this.up.bind(this)}>向上</div>
-                        {files.map((x) => {
-                            var icon = "ui " + (x.isFolder? 'folder' : 'file') + " icon"
-                            return <div className="item" onClick={this.download.bind(this, x)}>
-                                <i className={icon}></i>
-                                <div className="content">
-                                    {x.path.split('/').slice(-1)[0]}
-                                </div>
+                    <div className="ui segments">
+                        <div className="ui segment">
+                            <i className="ui upload icon"></i>手机上的文件列表
+                        </div>
+                        <div className="ui secondary segment">
+                            <p>当前位置：{this.state.path}　<div className='item ui button' onClick={this.up.bind(this)}><i className="ui up arrow icon"></i>向上一级</div></p>
+                            <div className="ui list">
+                                {files.map((x) => {
+                                    var icon = "ui " + (x.isFolder? 'folder' : 'file') + " icon"
+                                    return <div className="item" onClick={this.download.bind(this, x)}>
+                                        <i className={icon}></i>
+                                        <div className="content">
+                                            {x.path.split('/').slice(-1)[0]}
+                                        </div>
+                                    </div>
+                                })}
                             </div>
-                        })}
+                        </div>
                     </div>
                 </div>
                 <div className="column">
-                    <p className="head">完成的文件</p>
-                    <div className="ui list">
-                        {this.state.finished.map((x) => {
-                            return <div className="item">
-                                <div className="content">
-                                    <a href={"/f/"+x.file_id}>{x.origin_path}</a>
-                                </div>
+                    <div className="ui segments">
+                        <div className="ui segment">
+                            <i className="ui download icon"></i>完成的文件
+                        </div>
+                        <div className="ui secondary segment">
+                            <p className="head"></p>
+                            <div className="ui list">
+                                {this.state.finished.map((x) => {
+                                    return <div className="item">
+                                        <i className="ui file icon"></i>
+                                        <div className="content">
+                                            <a href={"/f/"+x.file_id}>{x.origin_path}</a>
+                                            <p>上传时间：{new Date(x.time * 1000).toLocaleString()}</p>
+                                        </div>
+                                    </div>
+                                })}
                             </div>
-                        })}
+                        </div>
                     </div>
                 </div>
             </div>
-
-        </div>
     }
 }
 

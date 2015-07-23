@@ -248,7 +248,7 @@ def get_file(file_id):
     if file and file.user.id == g.user.id:
         print(file, file.user.id)
         if app.debug:
-            return send_from_directory(app.config['UPLOAD'], file.saved_path)
+            return send_from_directory(app.config['UPLOAD'], file.saved_path,  as_attachment=True, attachment_filename=os.path.split(file.origin_path)[-1])
         else:
             response = make_response()
             response.headers['Content-Type'] = ''

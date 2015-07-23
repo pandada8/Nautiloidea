@@ -23,6 +23,8 @@ def update_position(func):
                     latitude, longtitude = request.args['latitude'], request.args['longitude']
                     g.position = {"latitude": float(latitude), "longtitude": float(longtitude), "t": g.t}
                     g.device.last_status['position'] = g.position
+                else:
+                    g.position = {}
                 return func(*args, **kwargs)
             else:
                 abort(403)

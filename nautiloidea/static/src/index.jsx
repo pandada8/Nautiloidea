@@ -126,7 +126,7 @@ class FileList extends React.Component{
         console.log(this)
         if(!x.isFolder){
             this.props.download(x.path, ()=>{
-                
+
             })
         }else{
             console.log('Jump to new path', x.path);
@@ -238,11 +238,15 @@ class PhonePage extends React.Component{
         var eraseNode = React.findDOMNode(this.refs.erase)
         eraseNode.className += ' loading'
         var data = {operation: "erase"};
-        var password = "我们需要您的密码来验证您的身份";
+        var password = prompt("我们需要您的密码来验证您的身份");
         data['password'] = password;
-        this.sendRequests(data, ()=>{
+        this.sendRequests(data, (err, response)=>{
+            if (!err && !response.err){
+                this.alert("擦除手机请求发送成功")
+            }else{
+                this.alert("密码错误")
+            }
             eraseNode.className = eraseNode.className.replace("loading", '')
-            this.alert("擦除手机请求发送成功")
         })
     }
     alarm(){
@@ -270,7 +274,7 @@ class PhonePage extends React.Component{
             if(!err && !response.err){
                 this.alert("解锁请求发送成功")
             }else{
-                this.alert('Oops, 服务器出了一些问题')
+                this.alert('密码错误')
             }
 
         })

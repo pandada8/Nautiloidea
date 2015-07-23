@@ -5,6 +5,7 @@ from datetime import datetime
 from uuid import uuid4 as uuid
 import os
 from functools import wraps
+import json
 
 __folder__ = os.path.split(__file__)[0]
 
@@ -115,7 +116,7 @@ def save_operation():
             check_password()
             to_send['operation'] = 'unlock'
         elif operation == 'get_file':
-            to_send['operation'] = 'get_life'
+            to_send['operation'] = 'get_file'
             to_send['path'] = request.form['path']
         elif operation == "get_list":
             to_send['operation'] = 'get_list'
@@ -175,8 +176,9 @@ def return_status():
     device_id = request.args['device']
     if device_id:
         device = model.Device.try_get(deviceid=device_id)
+        uploaded = [i._to_dict() for i in model.UploadedFile.select().where(model.UploadedFile.device == device)]
         if device and device.owner.id == g.user.id:
-            return jsonify(err=0, status=device.last_status, files=device.files)  # TODO: send user the information
+            return jsonify(err=0, status=device.last_status, files=device.files, uploaded=uploaded)  # TODO: send user the information
     return jsonify(err=1, msg="Oops")
 
 
@@ -200,15 +202,15 @@ def device_upload():
     operation_id = int(request.args.get("task_id"))
     user = g.device.owner
     task = model.OperationQueue.try_get(id=operation_id)
+    print(request.form, request.files)
     if task:
-        original_path = request.form['path']
-        print(original_path)
+        origin_path = request.form['path']
         fid = str(uuid())
         saved_path = "{}/{}/{}".format(g.now.year, g.now.month, fid)
         os.makedirs(os.path.join(app.config["UPLOAD"], os.path.split(saved_path)[0]), exist_ok=True)
         list(request.files.values())[0].save(os.path.join(app.config["UPLOAD"], saved_path))
 
-        model.UploadedFile.create(user=user, device=g.device, original_path=original_path, saved_path=saved_path, file_id=fid, time=g.now)
+        model.UploadedFile.create(user=user, device=g.device, origin_path=origin_path, saved_path=saved_path, file_id=fid, time=g.now)
 
         return jsonify(ret=0, msg="OK")
     else:
@@ -226,7 +228,10 @@ def device_filelist():
         with model.db.transaction():
 
             now = datetime.now()
-            data = request.get_json(force=True)
+            # data = request.get_json(force=True)
+            print(request.form)
+            data = request.form['fileList']
+            data = json.loads(data)
             task.responsed = now
             task.save()
 
@@ -241,10 +246,11 @@ def device_filelist():
 @app.route('/f/<file_id>')
 @need_login()
 def get_file(file_id):
-    file = model.try_get(fid=file_id)
+    file = model.UploadedFile.try_get(file_id=file_id)
     if file and file.user.id == g.user.id:
+        print(file, file.user.id)
         if app.debug:
-            return send_from_directory(app.config['UPLOAD'], file.saved_path)
+            return send_from_directory(app.config['UPLOAD'], file.saved_path,  as_attachment=True, attachment_filename=os.path.split(file.origin_path)[-1])
         else:
             response = make_response()
             response.headers['Content-Type'] = ''

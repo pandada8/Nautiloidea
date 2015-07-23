@@ -123,16 +123,14 @@ class FileList extends React.Component{
         }
     }
     download(x){
-        var loader =  React.findDOMNode(this.refs.loader)
-        loader.className += " active"
+        console.log(this)
         if(!x.isFolder){
             this.props.download(x.path, ()=>{
-                loader.className = loader.className.replace(' active', '')
+                
             })
         }else{
             console.log('Jump to new path', x.path);
             this.setState({path: x.path})
-            loader.className = loader.className.replace(' active', '')
         }
     }
     up(){
@@ -150,29 +148,50 @@ class FileList extends React.Component{
         }else{
             var files = []
         }
-        return <div className="ui segment">
-            <div className="ui inverted dimmer" ref="loader">
-                <div className="ui text loader">Loading</div>
-            </div>
-            <div className="ui two column">
+        return <div className="ui two columns stackable grid">
                 <div className="column">
-                    <p>{this.state.path}</p>
-                    <div className="ui list">
-                        <div className='item' onClick={this.up.bind(this)}>向上</div>
-                        {files.map((x) => {
-                            var icon = "ui " + (x.isFolder? 'folder' : 'file') + " icon"
-                            return <div className="item" onClick={this.download.bind(this, x)}>
-                                <i className={icon}></i>
-                                <div className="content">
-                                    {x.path.split('/').slice(-1)[0]}
-                                </div>
+                    <div className="ui segments">
+                        <div className="ui segment">
+                            <i className="ui upload icon"></i>手机上的文件列表
+                        </div>
+                        <div className="ui secondary segment">
+                            <p>当前位置：{this.state.path}　<div className='item ui button' onClick={this.up.bind(this)}><i className="ui up arrow icon"></i>向上一级</div></p>
+                            <div className="ui list">
+                                {files.map((x) => {
+                                    var icon = "ui " + (x.isFolder? 'folder' : 'file') + " icon"
+                                    return <div className="item" onClick={this.download.bind(this, x)}>
+                                        <i className={icon}></i>
+                                        <div className="content">
+                                            {x.path.split('/').slice(-1)[0]}
+                                        </div>
+                                    </div>
+                                })}
                             </div>
-                        })}
+                        </div>
+                    </div>
+                </div>
+                <div className="column">
+                    <div className="ui segments">
+                        <div className="ui segment">
+                            <i className="ui download icon"></i>完成的文件
+                        </div>
+                        <div className="ui secondary segment">
+                            <p className="head"></p>
+                            <div className="ui list">
+                                {this.state.finished.map((x) => {
+                                    return <div className="item">
+                                        <i className="ui file icon"></i>
+                                        <div className="content">
+                                            <a href={"/f/"+x.file_id}>{x.origin_path}</a>
+                                            <p>上传时间：{new Date(x.time * 1000).toLocaleString()}</p>
+                                        </div>
+                                    </div>
+                                })}
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-
-        </div>
     }
 }
 
@@ -192,7 +211,7 @@ class PhonePage extends React.Component{
                         if(resp.err){
                             console.log(err)
                         }else{
-                            cb(resp.body.status, resp.body.files, resp.body.finished)
+                            cb(resp.body.status, resp.body.files, resp.body.uploaded)
                         }
                     }
                 })
@@ -200,6 +219,7 @@ class PhonePage extends React.Component{
     componentWillMount(){
         this.update((status, files, finished) => {
             this.setState({last_status: status, init_position: status.position, files: files})
+            this.refs.map.update(status.position)
         })
         this.timer = setInterval(()=>{
             this.update((status, files, finished) => {
@@ -243,7 +263,7 @@ class PhonePage extends React.Component{
         var alarm = React.findDOMNode(this.refs.unlock)
         alarm.className += ' loading'
         var data = {operation: "unlock"}
-        var password = "我们需要您的密码来验证您的身份";
+        var password = prompt("我们需要您的密码来验证您的身份");
         data['password'] = password;
         this.sendRequests(data, (err, response)=>{
             alarm.className = alarm.className.replace("loading", '')
@@ -336,10 +356,10 @@ class PhonePage extends React.Component{
                 </div>
                 <div className="ui secondary segment">
                     <div className="ui red button" onClick={this.erase.bind(this)} ref="erase">擦除手机</div>
-                    <div className="ui yellow button" onClick={this.alarm.bind(this)} ref="alarm">响铃</div>
                     <div className="ui yellow button" onClick={this.lock.bind(this)} ref="lock">锁定手机</div>
                     <div className="ui yellow button" onClick={this.unlock.bind(this)} ref="unlock">解锁手机</div>
                     <div className="ui yellow button" onClick={this.disalarm.bind(this)} ref="disalarm">取消响铃</div>
+                    <div className="ui yellow button" onClick={this.alarm.bind(this)} ref="alarm">响铃</div>
                     <div className="ui yellow button" onClick={this.getFile.bind(this)} ref="getFileList">刷新文件列表</div>
                 </div>
             </div>

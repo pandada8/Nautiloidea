@@ -8,10 +8,10 @@ import json
 from datetime import datetime
 import logging
 
-if app.debug:
-    db = SqliteDatabase(os.path.normpath(os.path.join(os.path.split(__file__)[0], '../data.sqlite3')))
-else:
-    db = PostgresqlDatabase()  # TODO: Using the config the config the password and user
+# if app.debug:
+db = SqliteDatabase(os.path.normpath(os.path.join(os.path.split(__file__)[0], '../data.sqlite3')))
+# else:
+    # db = PostgresqlDatabase()  # TODO: Using the config the config the password and user
 
 
 logging.getLogger("peewee").setLevel(logging.INFO)

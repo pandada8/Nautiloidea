@@ -5,6 +5,7 @@ from datetime import datetime
 from uuid import uuid4 as uuid
 import os
 from functools import wraps
+import json
 
 __folder__ = os.path.split(__file__)[0]
 
@@ -115,7 +116,7 @@ def save_operation():
             check_password()
             to_send['operation'] = 'unlock'
         elif operation == 'get_file':
-            to_send['operation'] = 'get_life'
+            to_send['operation'] = 'get_file'
             to_send['path'] = request.form['path']
         elif operation == "get_list":
             to_send['operation'] = 'get_list'
@@ -201,6 +202,7 @@ def device_upload():
     operation_id = int(request.args.get("task_id"))
     user = g.device.owner
     task = model.OperationQueue.try_get(id=operation_id)
+    print(request.form, request.files)
     if task:
         origin_path = request.form['path']
         fid = str(uuid())
@@ -228,7 +230,7 @@ def device_filelist():
             now = datetime.now()
             # data = request.get_json(force=True)
             print(request.form)
-            data = request.form['FileList']
+            data = request.form['fileList']
             data = json.loads(data)
             task.responsed = now
             task.save()

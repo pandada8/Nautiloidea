@@ -52,6 +52,10 @@ def admin_create():
     print("Create user successfully.")
 
 @manager.command
+def runserver():
+    app.run(host="0.0.0.0", port=80)
+
+@manager.command
 def run_sender():
     from nautiloidea.task_sender import run_in_thread
     run_in_thread()

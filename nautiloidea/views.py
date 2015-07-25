@@ -245,18 +245,22 @@ def device_filelist():
         abort(400)
 
 
-@app.route('/f/<file_id>')
+@app.route('/f/<file_id>', methods=['GET', "DELETE"])
 @need_login()
 def get_file(file_id):
     file = model.UploadedFile.try_get(file_id=file_id)
     if file and file.user.id == g.user.id:
-        print(file, file.user.id)
-        if app.debug:
-            return send_from_directory(app.config['UPLOAD'], file.saved_path,  as_attachment=True, attachment_filename=os.path.split(file.origin_path)[-1])
-        else:
-            response = make_response()
-            response.headers['Content-Type'] = ''
-            response.headers['X-Accel-Redirect'] = file.saved_path  # TODO write a nginx config to fix the url
-            return response
+        if request.method == "GET":
+            print(file, file.user.id)
+            if app.debug:
+                return send_from_directory(app.config['UPLOAD'], file.saved_path,  as_attachment=True, attachment_filename=os.path.split(file.origin_path)[-1])
+            else:
+                response = make_response()
+                response.headers['Content-Type'] = ''
+                response.headers['X-Accel-Redirect'] = file.saved_path  # TODO write a nginx config to fix the url
+                return response
+        elif request.method == 'DELETE':
+            file.delete_instance()
+            return jsonify(err=0, msg="Success")
     else:
         abort(404)

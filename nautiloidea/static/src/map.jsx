@@ -30,8 +30,11 @@ class BaiduMap extends React.Component {
             var center = new BMap.Point(position.longtitude, position.latitude);
             var marker = new BMap.Marker(center);
             this.map.clearOverlays();
-            // this.map.panTo(center);
-            this.map.centerAndZoom(center, 15);
+            if(this.inited){
+                this.map.panTo(center);
+            }else{
+                this.map.centerAndZoom(center, this.map.getZoom());
+            }
             this.map.addOverlay(marker);
         }else{
             this.props.position = position;
@@ -44,6 +47,7 @@ class BaiduMap extends React.Component {
         map.enableKeyboard()
         if (this.props.position){
             this.update(this.props.position)
+            this.inited = true;
         }
     }
     render(){

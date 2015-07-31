@@ -33,7 +33,7 @@ class BaiduMap extends React.Component {
             if(this.inited){
                 this.map.panTo(center);
             }else{
-                this.map.centerAndZoom(center, this.map.getZoom());
+                this.map.centerAndZoom(center, 15);
             }
             this.map.addOverlay(marker);
         }else{

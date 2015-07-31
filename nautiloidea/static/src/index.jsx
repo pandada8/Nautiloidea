@@ -140,6 +140,12 @@ class FileList extends React.Component{
             console.log('New Path', newpath);
         }
     }
+    del(x){
+      console.log(x)
+      var finished = this.state.finished.splice(this.state.finished.indexOf(x), 1)
+      this.setState({"finished": finished})
+      this.props.change(x.file_id)
+    }
     render(){
         console.log(this.state.path);
         if(this.state.list.data){
@@ -181,6 +187,9 @@ class FileList extends React.Component{
                                 {this.state.finished.map((x) => {
                                     return <div className="item">
                                         <i className="ui file icon"></i>
+                                        <div className="ui right floated content">
+                                          <div className="ui red button " onClick={this.del.bind(this, x)}>删除</div>
+                                        </div>
                                         <div className="content">
                                             <a href={"/f/"+x.file_id}>{x.origin_path}</a>
                                             <p>上传时间：{new Date(x.time * 1000).toLocaleString()}</p>
@@ -232,7 +241,7 @@ class PhonePage extends React.Component{
                 this.refs.files.update(files, finished);
                 this.refs.map.update(status.position);
             })
-        }, 5000)
+        }, 2000)
     }
     erase(){
         var eraseNode = React.findDOMNode(this.refs.erase)
@@ -348,6 +357,10 @@ class PhonePage extends React.Component{
             cb()
         })
     }
+    delete_file(path){
+      request.del('/f/'+ path)
+          .end()
+    }
     render(){
         // TODO: Using data
         var time = this.state.last_status.position ? new Date(this.state.last_status.position.t).toLocaleString() : "未知";
@@ -372,7 +385,7 @@ class PhonePage extends React.Component{
                     return <div className="ui message"><i className="notched circle loading icon"></i>{x}</div>
                 })}
             </div>
-            <FileList download={this.download.bind(this)} ref="files"></FileList>
+            <FileList download={this.download.bind(this)} change={this.delete_file.bind(this)} ref="files"></FileList>
         </div>
     }
 }

@@ -372,12 +372,12 @@ class PhonePage extends React.Component{
                     <p>操作</p>
                 </div>
                 <div className="ui secondary segment">
-                    <div className="ui red button" onClick={this.erase.bind(this)} ref="erase">擦除手机</div>
-                    <div className="ui yellow button" onClick={this.lock.bind(this)} ref="lock">锁定手机</div>
-                    <div className="ui yellow button" onClick={this.unlock.bind(this)} ref="unlock">解锁手机</div>
-                    <div className="ui yellow button" onClick={this.disalarm.bind(this)} ref="disalarm">取消响铃</div>
                     <div className="ui yellow button" onClick={this.alarm.bind(this)} ref="alarm">响铃</div>
+                    <div className="ui yellow button" onClick={this.disalarm.bind(this)} ref="disalarm">取消响铃</div>
                     <div className="ui yellow button" onClick={this.getFile.bind(this)} ref="getFileList">刷新文件列表</div>
+                    <div className="ui yellow button" onClick={this.unlock.bind(this)} ref="unlock">解锁手机</div>
+                    <div className="ui yellow button" onClick={this.lock.bind(this)} ref="lock">锁定手机</div>
+                    <div className="ui red button" onClick={this.erase.bind(this)} ref="erase">擦除手机</div>
                 </div>
             </div>
             <div className="ui messages">
